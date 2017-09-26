@@ -1,13 +1,10 @@
 <template>
   <div class="recommend">
     <div class="recommend-content">
-
       <div class="slider-wrapper">
-
-        <slider>
-
+        <slider v-if="slider.length">
           <div v-for="item of slider">
-            <img :src="item.pic" alt="">
+            <a href=""><img :src="item.pic" alt=""></a>
           </div>
         </slider>
       </div>
@@ -24,7 +21,7 @@ import Slider from 'base/slider.vue'
 
 export default {
   created() {
-    this.$store.commit('getRecommend')
+    this.$store.dispatch('increment')
   },
   data: function() {
     return {

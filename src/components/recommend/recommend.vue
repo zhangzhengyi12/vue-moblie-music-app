@@ -4,7 +4,7 @@
       <div class="slider-wrapper">
         <slider v-if="slider.length">
           <div v-for="item of slider">
-            <a href=""><img :src="item.pic" alt=""></a>
+            <a :href="item.GO"><img :src="item.pic" alt=""></a>
           </div>
         </slider>
       </div>

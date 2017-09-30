@@ -43,9 +43,16 @@ export default {
     if (this.autoPlay) {
       this._play()
     }
+    window.addEventListener('resize', () => {
+      if (!this.slider) {
+        return
+      }
+      this._setSliderWidth(true)
+      this.slider.refresh()
+    })
   },
   methods: {
-    _setSliderWidth() {
+    _setSliderWidth(isResize) {
       this.children = this.$refs.sliderGroup.children
 
       let width = 0
@@ -58,7 +65,7 @@ export default {
         child.style.width = sliderWidth + 'px'
         width += sliderWidth
       }
-      if (this.loop) {
+      if (this.loop && !isResize) {
         width += 2 * sliderWidth
       }
       this.$refs.sliderGroup.style.width = width + 'px'
@@ -69,20 +76,16 @@ export default {
         scrollX: true,
         scrolly: false,
         momentum: false,
-        snap: true,
-        snapLoop: this.loop,
-        snapThreshold: 0.3,
+        snap: {loop: this.loop, threshold: 0.3},
         snapSpeed: 400,
         click: true
       })
       this.slider.on('scrollEnd', () => {
-        
         let pageIndex = this.slider.getCurrentPage().pageX
         if (this.loop) {
           pageIndex -= 1
         }
         this.currentPageIndex = pageIndex
-
         if (this.autoPlay) {
           clearTimeout(this.timer)
           this._play()

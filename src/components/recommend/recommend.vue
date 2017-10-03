@@ -1,40 +1,70 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content">
-      <div class="slider-wrapper">
-        <slider v-if="slider.length">
-          <div v-for="item of slider">
-            <a :href="item.GO"><img :src="item.pic" alt=""></a>
-          </div>
-        </slider>
+    <scroll class="recommend-content" :data="discList.list" ref="scroll">
+      <div class="scroll-wrapper">
+        <div class="slider-wrapper">
+          <slider v-if="slider.length">
+            <div v-for="item of slider">
+              <a :href="item.GO"><img :src="item.pic" alt="" @load="loadImage"></a>
+            </div>
+          </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li v-for="item of discList.list" class="item">
+              <div class="icon">
+                <img class="needsclick" v-lazy="item.imgurl" alt="" width="60" height="60">
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul></ul>
+      <div class="loading-container" v-show="!discList.list">
+        <loading></loading>
       </div>
-    </div>
+    </scroll>
   </div>
 </template>
 
 <script>
 import Slider from 'base/slider.vue'
+import Scroll from 'base/scroll/scroll.vue'
+import loading from 'base/loading/loading.vue'
 
 export default {
   created() {
-    this.$store.dispatch('increment')
+    this.$store.dispatch('initRecommendData')
   },
   data: function() {
     return {
+      checkLoad: true
     }
   },
   methods: {
+    loadImage() {
+      if (!this.checkLoad) {
+        return
+      }
+      this.checkLoad = false
+      this.$refs.scroll.refresh()
+    }
   },
   components: {
-    Slider
+    Slider,
+    Scroll,
+    loading
   },
   computed: {
     slider() {
       return this.$store.state.slider
+    },
+    discList() {
+      return this.$store.state.discList
     }
   }
 }

@@ -1,9 +1,10 @@
-// TODO:试试其他版本的Better-scroll
 <template>
   <div id="app">
     <m-header></m-header>
     <tab></tab>
-    <router-view></router-view>
+    <keep-alive>
+      <router-view></router-view>
+    </keep-alive>
   </div>
 </template>
 

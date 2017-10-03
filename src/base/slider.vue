@@ -37,6 +37,7 @@ export default {
     }
   },
   mounted() {
+    // mouneted包括DOM的加载 也就是图片
     this._setSliderWidth()
     this._initdots()
     this._initSlider()
@@ -53,7 +54,9 @@ export default {
   },
   methods: {
     _setSliderWidth(isResize) {
-      this.children = this.$refs.sliderGroup.children
+      if (!isResize) {
+        this.children = this.$refs.sliderGroup.children
+      }
 
       let width = 0
       let sliderWidth = this.$refs.slider.clientWidth
@@ -71,14 +74,12 @@ export default {
       this.$refs.sliderGroup.style.width = width + 'px'
     },
     _initSlider() {
-      console.log(this.loop)
       this.slider = new BScroll(this.$refs.slider, {
         scrollX: true,
         scrolly: false,
         momentum: false,
         snap: {loop: this.loop, threshold: 0.3},
-        snapSpeed: 400,
-        click: true
+        snapSpeed: 400
       })
       this.slider.on('scrollEnd', () => {
         let pageIndex = this.slider.getCurrentPage().pageX
@@ -99,12 +100,15 @@ export default {
       let pageIndex = this.currentPageIndex + 1
       if (this.loop) {
         pageIndex += 1
-        console.log(pageIndex)
       }
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400)
       }, this.interval)
     }
+  },
+  destroyed() {
+    clearTimeout(this.timer)
+    this.slider = null
   }
 }
 </script>

@@ -1,13 +1,35 @@
 <template>
-  <div>singer</div>
+  <div class="singer">
+    <listview :data="singers"></listview>
+  </div>
 </template>
 
 <script>
+import Listview from 'base/listview/listview.vue'
 export default {
-
+  data: function() {
+    return {
+    }
+  },
+  created() {
+    this.$store.dispatch('initSingerData')
+  },
+  computed: {
+    singers() {
+      return this.$store.state.singerList
+    }
+  },
+  components: {
+    Listview
+  }
 }
 </script>
 
-<style>
-
+<style lang="stylus" scoped>
+  .singer
+    position:fixed
+    top: 88px
+    bottom: 0
+    width: 100%
 </style>
+

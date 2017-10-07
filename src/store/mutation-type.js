@@ -1,0 +1,4 @@
+export const SET_SINGER = 'SET_SINGER'
+export const GET_SLIDER = 'GET_SLIDER'
+export const NORMALIZE_SINGERS = 'NORMALIZE_SINGERS'
+export const SORT_SINGERS = 'SORT_SINGERS'

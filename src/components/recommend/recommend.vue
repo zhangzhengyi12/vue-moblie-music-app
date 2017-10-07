@@ -9,7 +9,7 @@
             </div>
           </slider>
         </div>
-        <div class="recommend-list">
+        <div class="recommend-list" v-show="discList.list">
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
             <li v-for="item of discList.list" class="item">

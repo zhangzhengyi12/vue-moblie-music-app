@@ -4,14 +4,14 @@
       <li v-for="(group,index) of data" class="list-group" ref="listgroup">
         <h2 class="list-group-title">{{ group.title }}</h2>
         <ul>
-          <li v-for="item of group.items" class="list-group-item">
+          <li v-for="item of group.items" class="list-group-item" @click="selectItem(item)">
             <img v-lazy="item.avatar" alt="" class="avatar">
             <span class="name">{{ item.name }}</span>
           </li>
         </ul>
       </li>
     </ul>
-    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove="onShortcutTouchMove" @touchend="onShortcutTouchEnd">
+    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove="onShortcutTouchMove" @touchend="onShortcutTouchEnd" v-show="data.length!=0">
       <ul>
         <li v-for="(item,index) in shortcutList" class="item" :data-index="index" :class="{heightlight:tipsIndex===index}">
           {{ item }}
@@ -21,11 +21,15 @@
     <div class="list-fixed" v-show="scrollY<=0" ref="fixed">
       <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
+    <div v-show="!data.length" class="loading-container">
+      <loading></loading>
+    </div>
   </scroll>
 </template>
 
 <script>
 import Scroll from 'base/scroll/scroll.vue'
+import Loading from 'base/loading/loading.vue'
 import { getData } from 'common/js/dom.js'
 
 const ANCHOR_HEIGHT = 18
@@ -52,7 +56,8 @@ export default {
     }
   },
   components: {
-    Scroll
+    Scroll,
+    Loading
   },
   computed: {
     shortcutList() {
@@ -66,6 +71,11 @@ export default {
     }
   },
   methods: {
+    selectItem(item) {
+      this.$router.push({
+        path: `/singer/${item.id}`
+      })
+    },
     onShortcutTouchStart(e) {
       let anchorIndex = parseInt(getData(e.target, 'index'))
       let firstTouch = e.touches[0]
@@ -145,7 +155,7 @@ export default {
       // newVal是整个固定上边距与下方title的距离
       // 当newVal大于距离会被重置为0 变形回归
       let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
-      if (this.fixedTop === fixedTop){
+      if (this.fixedTop === fixedTop) {
         return
       }
       this.fixedTop = fixedTop

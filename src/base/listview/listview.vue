@@ -1,8 +1,8 @@
 <template>
-  <scroll class="listview" :data="data" ref="listview">
+  <scroll class="listview" :data="data" ref="listview" :listenScroll="listenScroll" @scroll="scroll" :probeType="probeType">
     <ul class="">
-      <li v-for="(group,index) of data" class="list-group" ref="listgroup" >
-        <h2 class="list-group-title":class="{ heightlight : tipsIndex === index}">{{ group.title }}</h2>
+      <li v-for="(group,index) of data" class="list-group" ref="listgroup">
+        <h2 class="list-group-title">{{ group.title }}</h2>
         <ul>
           <li v-for="item of group.items" class="list-group-item">
             <img v-lazy="item.avatar" alt="" class="avatar">
@@ -13,11 +13,13 @@
     </ul>
     <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove="onShortcutTouchMove" @touchend="onShortcutTouchEnd">
       <ul>
-        <li v-for="(item,index) in shortcutList" class="item" :data-index="index">
+        <li v-for="(item,index) in shortcutList" class="item" :data-index="index" :class="{heightlight:tipsIndex===index}">
           {{ item }}
-          <span class="tips" v-if="tipsIndex===index">{{item}}</span>
         </li>
       </ul>
+    </div>
+    <div class="list-fixed" v-show="scrollY<=0" ref="fixed">
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
   </scroll>
 </template>
@@ -27,14 +29,20 @@ import Scroll from 'base/scroll/scroll.vue'
 import { getData } from 'common/js/dom.js'
 
 const ANCHOR_HEIGHT = 18
+const TITLE_HEIGHT = 30
 
 export default {
   created() {
     this.touch = {}
+    this.listenScroll = true
+    this.listHeight = []
+    this.probeType = 3
   },
   data: function() {
     return {
-      tipsIndex: -1
+      tipsIndex: 0,
+      scrollY: -1,
+      diff: -1
     }
   },
   props: {
@@ -51,16 +59,19 @@ export default {
       return this.data.map(group => {
         return group.title.substr(0, 1)
       })
+    },
+    fixedTitle() {
+      if (this.scrollY > 0) return ''
+      return this.data[this.tipsIndex] ? this.data[this.tipsIndex].title : ''
     }
   },
   methods: {
     onShortcutTouchStart(e) {
-      let anchorIndex = Number(getData(e.target, 'index'))
+      let anchorIndex = parseInt(getData(e.target, 'index'))
       let firstTouch = e.touches[0]
       this.touch.y1 = firstTouch.pageY
       this.anchorIndex = anchorIndex
       this._scrollTo(this.anchorIndex)
-      this.tipsIndex = anchorIndex
     },
     onShortcutTouchMove(e) {
       let firstTouch = e.touches[0]
@@ -68,13 +79,77 @@ export default {
       let delta = parseInt(this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
       let anchorIndex = this.anchorIndex + delta
       this._scrollTo(anchorIndex)
-      this.tipsIndex = anchorIndex
     },
     onShortcutTouchEnd() {
-      this.tipsIndex = -1
+      // this.tipsIndex = -1
+    },
+    scroll(pos) {
+      this.scrollY = pos.y
     },
     _scrollTo(index) {
+      if (isNaN(index)) {
+        return
+      }
+      if (index < 0) {
+        index = 0
+      } else if (index > this.listHeight.length - 2) {
+        index = this.listHeight - 2
+      }
+      this.scrollY = -this.listHeight[index]
       this.$refs.listview.scrollToEle(this.$refs.listgroup[index], 0)
+    },
+    _calculateHeight() {
+      // 本质上是创建一个数组区间
+      this.listHeight = []
+      const list = this.$refs.listgroup
+      let height = 0
+      this.listHeight.push(height)
+      for (let i = 0; i < list.length; i++) {
+        let item = list[i]
+        height += item.clientHeight
+        this.listHeight.push(height)
+      }
+    }
+  },
+  watch: {
+    data() {
+      setTimeout(() => {
+        // 每当列表更新 重新获取高度
+        this._calculateHeight()
+      }, 20)
+    },
+    scrollY(newY) {
+      const listHeight = this.listHeight
+      // top
+      if (newY > 0) {
+        this.tipsIndex = 0
+        return
+      }
+
+      // mid
+
+      for (let i = 0; i < listHeight.length - 1; i++) {
+        let height1 = listHeight[i]
+        let height2 = listHeight[i + 1]
+        if (-newY >= height1 && -newY < height2) {
+          this.tipsIndex = i
+          this.diff = height2 + newY
+          return
+        }
+      }
+
+      // bottom
+      this.tipsIndex = listHeight.length - 2
+    },
+    diff(newVal) {
+      // newVal是整个固定上边距与下方title的距离
+      // 当newVal大于距离会被重置为0 变形回归
+      let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+      if (this.fixedTop === fixedTop){
+        return
+      }
+      this.fixedTop = fixedTop
+      this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
     }
   }
 }
@@ -126,12 +201,12 @@ export default {
       background: $color-background-d
       font-family: Helvetica
       .item
-        padding: 3px
+        padding: 3px 0px 3px 0px
         line-height: 1
         color: $color-text-l
         font-size: $font-size-small
         position: relative
-        &.current
+        &.heightlight
           color: $color-theme
         .tips
           display:inline-block
@@ -140,7 +215,7 @@ export default {
           font-size: 22px
           color: $color-theme
           text-align: center
-          line-height: 10px
+          line-height: 18px
           left: -30px
     .list-fixed
       position: absolute

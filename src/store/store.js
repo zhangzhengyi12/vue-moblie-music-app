@@ -86,7 +86,6 @@ const store = new Vuex.Store({
           state.singerList = res.data.list
           commit('normalizeSingers', 'singerList')
           commit('sortSingers', 'singerList')
-          console.log(state.singerList)
         }
       })
     }

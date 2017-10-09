@@ -72,9 +72,7 @@ export default {
   },
   methods: {
     selectItem(item) {
-      this.$router.push({
-        path: `/singer/${item.id}`
-      })
+      this.$emit('selectItem', item)
     },
     onShortcutTouchStart(e) {
       let anchorIndex = parseInt(getData(e.target, 'index'))

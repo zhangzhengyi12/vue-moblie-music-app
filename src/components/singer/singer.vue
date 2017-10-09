@@ -1,12 +1,14 @@
 <template>
   <div class="singer">
-    <listview :data="singers"></listview>
+    <listview :data="singers" @selectItem="selectItem"></listview>
     <router-view></router-view>
   </div>
 </template>
 
 <script>
 import Listview from 'base/listview/listview.vue'
+import { mapMutations } from 'vuex'
+
 export default {
   data: function() {
     return {
@@ -19,6 +21,17 @@ export default {
     singers() {
       return this.$store.state.singerList
     }
+  },
+  methods: {
+    selectItem(singer) {
+      this.$router.push({
+        path: `/singer/${singer.id}`
+      })
+      this.setSinger(singer)
+    },
+    ...mapMutations({
+      setSinger: 'SET_SINGER'
+    })
   },
   components: {
     Listview

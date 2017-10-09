@@ -51,6 +51,9 @@ const mutations = {
       return a.title.charCodeAt(0) - b.title.charCodeAt(0)
     })
     state[dataKey] = hot.concat(ret)
+  },
+  [types.SET_SINGER](state, singer) {
+    state.singer = singer
   }
 }
 

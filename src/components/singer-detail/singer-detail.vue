@@ -1,12 +1,43 @@
 <template>
   <transition name="slide">
-  <div class="singer-detail"></div>
+    <div class="singer-detail"></div>
   </transition>
 </template>
 
 <script>
-export default {
+import { getSingerDetail } from 'api/singer.js'
+import { ERR_OK } from 'api/config.js'
+import { mapGetters } from 'vuex'
 
+export default {
+  created() {
+    this._getDetail()
+  },
+  data: function() {
+    return {
+      detailData: {}
+    }
+  },
+  methods: {
+    _getDetail() {
+      if (!this.singer.id) {
+        this.$router.push({
+          path: '/singer'
+        })
+      }
+      getSingerDetail(this.singer.id)
+        .then((res) => {
+          if (res.code === ERR_OK) {
+            console.log(res.data.list)
+          }
+        })
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'singer'
+    ])
+  }
 }
 </script>
 

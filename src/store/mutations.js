@@ -4,13 +4,11 @@ import { HOT_NAME, HOT_SIZE } from 'api/config.js'
 import Singer from 'common/js/singer.js'
 
 const mutations = {
-  // [types.SET_SINGER](state, singer) {},
   [types.GET_SLIDER](state) {
     let sData = state.recommendData.focus
     sData.forEach(function(element) {
       element.GO = getJump(element.id, element.type)
     }, this)
-    console.log(sData)
     state.slider = sData
   },
   [types.NORMALIZE_SINGERS](state, dataKey) {

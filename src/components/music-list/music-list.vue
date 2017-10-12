@@ -1,15 +1,19 @@
 <template>
   <div class="music-list">
-    <div class="back">
-      <i class="icon-back"></i>
+
+    <div class="fixed-nav">
+      <div class="back">
+        <i class="icon-back"></i>
+      </div>
     </div>
-    <h1 class="title" v-html="title"></h1>
+    <h1 class="title" v-html="title" ref="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bg">
-      <div class="filter">
+      <div class="filter" ref="filter">
 
       </div>
     </div>
-    <scroll :data="songs" class="list" ref="list">
+    <div class="bg-layer" ref="bgLayer"></div>
+    <scroll :data="songs" class="list" ref="list" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
         <song-list :songs="songs"></song-list>
       </div>
@@ -24,6 +28,20 @@ import SongList from 'base/song-list/song-list.vue'
 import Scroll from 'base/scroll/scroll.vue'
 
 export default {
+  created() {
+    this.probeType = 3
+    this.listenScroll = true
+  },
+  data: function() {
+    return {
+      scrollY: 0
+    }
+  },
+  methods: {
+    scroll(pos) {
+      this.scrollY = pos.y
+    }
+  },
   props: {
     bgImage: {
       type: String,
@@ -46,7 +64,43 @@ export default {
     }
   },
   mounted() {
+    this.imgHeight = this.$refs.bg.clientHeight
+    this.titleHeight = this.$refs.title.clientHeight
+    this.minTranslateY = -this.imgHeight + this.titleHeight
     this.$refs.list.$el.style.top = this.$refs.bg.clientHeight + 'px'
+  },
+  watch: {
+    scrollY(newY) {
+      let zIndex = 0
+      let scale = 1
+      let blur = 0
+      let translateY = Math.max(this.minTranslateY, newY)
+      // 计算遮罩动画
+      if (translateY === this.minTranslateY) {
+        zIndex = 10
+        this.$refs.bg.style.paddingTop = 0
+        this.$refs.bg.style.height = `${this.titleHeight}px`
+      } else {
+        // 如果不再顶端 让bg-layer自动遮罩回去即可，不需要修改背景图的其他属性
+        this.$refs.bg.style.paddingTop = `70%`
+        this.$refs.bg.style.height = `0px`
+      }
+      //  计算下拉缩放 && 模糊
+      const percent = Math.abs(newY / this.imgHeight)
+      if (newY > 0) {
+        scale += percent
+        zIndex = 10
+      } else {
+        blur = Math.min(20 * percent, 20)
+      }
+
+      this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
+      this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+
+      this.$refs.bg.style.zIndex = zIndex
+      this.$refs.bgLayer.style.transform = `translate3d(0,${translateY}px,0)`
+      this.$refs.bg.style.transform = `scale(${scale})`
+    }
   },
   components: {
     SongList,

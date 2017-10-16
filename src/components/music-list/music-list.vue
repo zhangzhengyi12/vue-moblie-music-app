@@ -2,20 +2,28 @@
   <div class="music-list">
 
     <div class="fixed-nav">
-      <div class="back">
+      <div class="back" @click="back">
         <i class="icon-back"></i>
       </div>
     </div>
     <h1 class="title" v-html="title" ref="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bg">
+      <div class="play-wrapper" ref="playBtn" v-show="songs.length>0">
+        <div class="play">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <div class="filter" ref="filter">
-
       </div>
     </div>
     <div class="bg-layer" ref="bgLayer"></div>
     <scroll :data="songs" class="list" ref="list" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
         <song-list :songs="songs"></song-list>
+      </div>
+      <div class="loading-container" v-show="!songs.length">
+        <loading></loading>
       </div>
     </scroll>
   </div>
@@ -26,6 +34,11 @@
 <script>
 import SongList from 'base/song-list/song-list.vue'
 import Scroll from 'base/scroll/scroll.vue'
+import Loading from 'base/loading/loading.vue'
+import { prefixStyle } from 'common/js/dom.js'
+
+const transformName = prefixStyle('transform')
+const backdropFilterName = prefixStyle('backdrop-filter')
 
 export default {
   created() {
@@ -40,6 +53,9 @@ export default {
   methods: {
     scroll(pos) {
       this.scrollY = pos.y
+    },
+    back() {
+      this.$router.back()
     }
   },
   props: {
@@ -74,12 +90,14 @@ export default {
       let zIndex = 0
       let scale = 1
       let blur = 0
+      let playBoxDis = 'block'
       let translateY = Math.max(this.minTranslateY, newY)
       // 计算遮罩动画
       if (translateY === this.minTranslateY) {
         zIndex = 10
         this.$refs.bg.style.paddingTop = 0
         this.$refs.bg.style.height = `${this.titleHeight}px`
+        playBoxDis = 'none'
       } else {
         // 如果不再顶端 让bg-layer自动遮罩回去即可，不需要修改背景图的其他属性
         this.$refs.bg.style.paddingTop = `70%`
@@ -94,17 +112,20 @@ export default {
         blur = Math.min(20 * percent, 20)
       }
 
-      this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
-      this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+      this.$refs.filter.style[backdropFilterName] = `blur(${blur}px)`
+      this.$refs.filter.style[backdropFilterName] = `blur(${blur}px)`
 
       this.$refs.bg.style.zIndex = zIndex
-      this.$refs.bgLayer.style.transform = `translate3d(0,${translateY}px,0)`
-      this.$refs.bg.style.transform = `scale(${scale})`
+      this.$refs.bgLayer.style[transformName] = `translate3d(0,${translateY}px,0)`
+      this.$refs.bg.style[transformName] = `scale(${scale})`
+
+      this.$refs.playBtn.style.display = playBoxDis
     }
   },
   components: {
     SongList,
-    Scroll
+    Scroll,
+    Loading
   }
 }
 </script>

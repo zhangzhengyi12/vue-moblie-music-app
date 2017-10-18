@@ -8,7 +8,7 @@ const state = {
   playData: {
     playing: false,
     fullScreen: false,
-    playlist: [],
+    playList: [],
     sequenceList: [],
     mode: playMode,
     currentIndex: -1

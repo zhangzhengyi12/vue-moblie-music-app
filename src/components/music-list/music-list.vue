@@ -20,7 +20,7 @@
     <div class="bg-layer" ref="bgLayer"></div>
     <scroll :data="songs" class="list" ref="list" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="selectItem"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -36,6 +36,7 @@ import SongList from 'base/song-list/song-list.vue'
 import Scroll from 'base/scroll/scroll.vue'
 import Loading from 'base/loading/loading.vue'
 import { prefixStyle } from 'common/js/dom.js'
+import { mapActions } from 'vuex'
 
 const transformName = prefixStyle('transform')
 const backdropFilterName = prefixStyle('backdrop-filter')
@@ -56,7 +57,16 @@ export default {
     },
     back() {
       this.$router.back()
-    }
+    },
+    selectItem(item, index) {
+      this.selectPlay({
+        list: this.songs,
+        index
+      })
+    },
+    ...mapActions([
+      'selectPlay'
+    ])
   },
   props: {
     bgImage: {

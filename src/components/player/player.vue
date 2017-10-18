@@ -1,18 +1,157 @@
 <template>
   <div class="player" v-show="playList.length>0">
-    <div class="normal-player" v-show="fullScreen">Player</div>
-    <div class="mini-player" v-show="!fullScreen"></div>
+    <transition name="normal" @enter="enter" @after-enter="afterEnter" @leave="leave" @after-leave="leaveEnter">
+      <div class="normal-player" v-show="fullScreen">
+        <div class="background">
+          <img height="100%" width="100%" :src="currentSong.image">
+        </div>
+        <div class="top">
+          <div class="back" @click="closeNormalPlayer">
+            <i class="icon-back"></i>
+          </div>
+          <h1 class="title" v-html="currentSong.name"></h1>
+          <h2 class="subtitle" v-html="currentSong.singer"></h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l">
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd">
+                <img class="image" :src="currentSong.image">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="operators">
+            <div class="icon i-left">
+              <i class="icon-sequence"></i>
+            </div>
+            <div class="icon i-left">
+              <i class="icon-prev"></i>
+            </div>
+            <div class="icon i-center">
+              <i class="icon-play"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon-next"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon icon-not-favorite"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+    <transition name="mini-fade">
+      <div class="mini-player" v-show="!fullScreen" @click="openNormalPlayer">
+        <div class="icon">
+          <img width="40" height="40" :src="currentSong.image">
+        </div>
+        <div class="text">
+          <h2 class="name" v-html="currentSong.name"></h2>
+          <p class="desc" v-html="currentSong.singer"></p>
+        </div>
+        <div class="control"></div>
+        <div class="control">
+          <i class="icon-playlist"></i>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
+import animations from 'create-keyframe-animation'
 export default {
+  mounted() {
+  },
   computed: {
     ...mapGetters([
       'fullScreen',
-      'playList'
+      'playList',
+      'currentSong'
     ])
+  },
+  methods: {
+    closeNormalPlayer() {
+      this.setFullScreen(false)
+    },
+    openNormalPlayer() {
+      this.setFullScreen(true)
+    },
+    enter(el, done) {
+      const { x, y, scale } = this._getPostAndScala()
+      let animation = {
+        0: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        },
+        60: {
+          transfrom: `translate3d(0,0,0) scale(1,1)`
+        },
+        100: {
+          transform: `translate3d(0,0,0) scale(1)`
+        }
+      }
+      // 这是Norma player到Mini的动画 首先覆盖到小播放器专辑的位置 然后再回来 最后缩放正常
+      animations.registerAnimation({
+        name: 'move',
+        animation,
+        presets: {
+          duration: 400,
+          easing: 'linear'
+        }
+      })
+      animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+    },
+    afterEnter(el, done) {
+      animations.unregisterAnimation('move')
+      this.$refs.cdWrapper.style.animation = ''
+    },
+    leave(el, done) {
+      const { x, y, scale } = this._getPostAndScala()
+      let animation = {
+        0: {
+          transform: `translate3d(0px,0px,0) scale(1)`
+        },
+        100: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        }
+      }
+      animations.registerAnimation({
+        name: 'back',
+        animation,
+        presets: {
+          duration: 400,
+          easing: 'linear'
+        }
+      })
+      animations.runAnimation(this.$refs.cdWrapper, 'back', done)
+    },
+    leaveEnter(el, done) {
+      animations.unregisterAnimation('back')
+      this.$refs.cdWrapper.style.animation = ''
+    },
+    _getPostAndScala() {
+      const targetWidth = 40
+      const paddingLeft = 40 // 小专辑的中心点
+      const paddingBottom = 30
+      const paddingTop = 80
+      const width = window.innerWidth * 0.8
+      const scale = targetWidth / width
+      const x = -(window.innerWidth / 2 - paddingLeft)
+      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom
+      // 此处的xy 是 大专辑飞到小专辑的xy轴偏移
+      return {
+        x,
+        y,
+        scale
+      }
+    },
+   
+    ...mapMutations({
+      setFullScreen: 'SET_FULL_SCREEN'
+    })
   }
 }
 </script>
@@ -20,6 +159,24 @@ export default {
 <style scoped lang="stylus" rel="stylesheet/stylus">
 @import '~common/stylus/variable';
 @import '~common/stylus/mixin';
+
+// animate
+.normal-fade-enter-active, .normal-fade-leave-active {
+  transition: all 0.4s;
+}
+
+.normal-fade-enter, .normal-fade-leave-to {
+  opacity: 0;
+  transform: translateY(50vh);
+}
+
+.mini-fade-enter-active, .mini-fade-leave-active {
+  transition: all 0.4s;
+}
+
+.mini-fade-enter, .mini-fade-leave-to {
+  opacity: 0;
+}
 
 .player {
   .normal-player {
@@ -39,7 +196,7 @@ export default {
       height: 100%;
       z-index: -1;
       opacity: 0.6;
-      filter: blur(20px);
+      filter: blur(40px);
     }
 
     .top {

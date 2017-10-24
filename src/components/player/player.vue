@@ -15,25 +15,30 @@
         <div class="middle">
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
+              <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrpper">
+            <span class="time time-l">{{ format(currentTime) }}</span>
+            <div class="progress-bar-wrapper"></div>
+            <span class="time time-r">{{ format(currentSong.duration)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
-              <i class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i class="icon-prev" @click="togglePrev"></i>
             </div>
-            <div class="icon i-center">
-              <i class="icon-play"></i>
+            <div class="icon i-center" :class="disableCls">
+              <i :class="playIcon" @click="togglePlaying"></i>
             </div>
-            <div class="icon i-right">
-              <i class="icon-next"></i>
+            <div class="icon i-right" :class="disableCls">
+              <i class="icon-next" @click="toggleNext"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -45,17 +50,23 @@
     <transition name="mini-fade">
       <div class="mini-player" v-show="!fullScreen" @click="openNormalPlayer">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img width="40" height="40" :src="currentSong.image" :class="cdCls">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
-        <div class="control"></div>
+        <div class="control">
+          <i :class="miniIcon" @click.stop="togglePlaying"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
+    </transition>
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
+    <transition name="alert">
+      <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
   </div>
 </template>
@@ -63,15 +74,41 @@
 <script>
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
+import Alert from 'base/alert/alert.vue'
 export default {
   mounted() {
+  },
+  data: function() {
+    return {
+      alertText: '',
+      isAlert: false,
+      songReady: false,
+      currentTime: 0
+    }
+  },
+  components: {
+    Alert
   },
   computed: {
     ...mapGetters([
       'fullScreen',
       'playList',
-      'currentSong'
-    ])
+      'currentSong',
+      'playing',
+      'currentIndex'
+    ]),
+    playIcon() {
+      return this.playing ? 'icon-pause' : 'icon-play'
+    },
+    miniIcon() {
+      return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
+    cdCls() {
+      return this.playing ? 'play' : 'play pause'
+    },
+    disableCls() {
+      return this.songReady ? '' : 'disable'
+    }
   },
   methods: {
     closeNormalPlayer() {
@@ -80,6 +117,31 @@ export default {
     openNormalPlayer() {
       this.setFullScreen(true)
     },
+    error() {
+      this.alertText = '歌曲获取失败 尝试下一首'
+      this.isAlert = true
+      this.songReady = true
+      setTimeout(() => {
+        this.isAlert = false
+        this.toggleNext()
+      }, 1200)
+    },
+    togglePlaying() {
+      if (!this.songReady) return
+      this.setPlayingState(!this.playing)
+    },
+    toggleNext() {
+      if (!this.songReady) return
+      this.songReady = false
+      this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
+      this.setPlayingState(true)
+    },
+    togglePrev() {
+      if (!this.songReady) return
+      this.songReady = false
+      this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
+      this.setPlayingState(true)
+    },
     enter(el, done) {
       const { x, y, scale } = this._getPostAndScala()
       let animation = {
@@ -87,7 +149,7 @@ export default {
           transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
         },
         60: {
-          transfrom: `translate3d(0,0,0) scale(1,1)`
+          transfrom: `translate3d(0,0,0) scale(1.2)`
         },
         100: {
           transform: `translate3d(0,0,0) scale(1)`
@@ -103,6 +165,18 @@ export default {
         }
       })
       animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+    },
+    updateTime(e) {
+      this.currentTime = e.target.currentTime
+    },
+    format(interval) {
+      interval = interval | 0
+      const minute = interval / 60 | 0
+      const second = interval % 60 | 0
+      return `${minute}:${second}`
+    },
+    ready() {
+      this.songReady = true
     },
     afterEnter(el, done) {
       animations.unregisterAnimation('move')
@@ -148,10 +222,24 @@ export default {
         scale
       }
     },
-   
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCurrentIndex: 'SET_CURRENT_INDEX'
     })
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 }
 </script>
@@ -528,5 +616,13 @@ export default {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.alert-enter, .alert-leave-to {
+  opacity: 0;
+}
+
+.alert-enter-active, .alert-leave-active {
+  transition: all 0.6s;
 }
 </style>

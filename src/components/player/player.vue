@@ -22,14 +22,16 @@
           </div>
         </div>
         <div class="bottom">
-          <div class="progress-wrpper">
+          <div class="progress-wrapper">
             <span class="time time-l">{{ format(currentTime) }}</span>
-            <div class="progress-bar-wrapper"></div>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="playPercent" @precentChange="onProgressChange"></progress-bar>
+            </div>
             <span class="time time-r">{{ format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence"></i>
+              <i :class="iconMode" @click="changeMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i class="icon-prev" @click="togglePrev"></i>
@@ -57,7 +59,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <i :class="miniIcon" @click.stop="togglePlaying"></i>
+          <progress-circle :radius="32" :percent="playPercent">
+          <i :class="miniIcon" class="icon-mini" @click.stop="togglePlaying"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -75,9 +79,11 @@
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 import Alert from 'base/alert/alert.vue'
+import progressBar from 'base/progress-bar/progress-bar.vue'
+import progressCircle from 'base/progress-circle/progress-circle.vue'
+import { playMode } from 'common/js/config.js'
 export default {
-  mounted() {
-  },
+  mounted() {},
   data: function() {
     return {
       alertText: '',
@@ -87,7 +93,9 @@ export default {
     }
   },
   components: {
-    Alert
+    Alert,
+    progressBar,
+    progressCircle
   },
   computed: {
     ...mapGetters([
@@ -95,7 +103,8 @@ export default {
       'playList',
       'currentSong',
       'playing',
-      'currentIndex'
+      'currentIndex',
+      'mode'
     ]),
     playIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
@@ -108,6 +117,18 @@ export default {
     },
     disableCls() {
       return this.songReady ? '' : 'disable'
+    },
+    playPercent() {
+      return this.currentTime / this.currentSong.duration
+    },
+    iconMode() {
+      let cName = ''
+      Object.keys(playMode).forEach(key => {
+        if (playMode[key] === this.mode) {
+          cName = `icon-${key}`
+        }
+      })
+      return cName
     }
   },
   methods: {
@@ -133,14 +154,28 @@ export default {
     toggleNext() {
       if (!this.songReady) return
       this.songReady = false
-      this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
+      this.setCurrentIndex(
+        this.currentIndex >= this.playList.length - 1
+          ? 0
+          : this.currentIndex + 1
+      )
       this.setPlayingState(true)
     },
     togglePrev() {
       if (!this.songReady) return
       this.songReady = false
-      this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
+      this.setCurrentIndex(
+        this.currentIndex <= 0
+          ? this.playList.length - 1
+          : this.currentIndex - 1
+      )
       this.setPlayingState(true)
+    },
+    onProgressChange(percent) {
+      this.$refs.audio.currentTime = Number(percent * this.currentSong.duration)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
     },
     enter(el, done) {
       const { x, y, scale } = this._getPostAndScala()
@@ -171,9 +206,21 @@ export default {
     },
     format(interval) {
       interval = interval | 0
-      const minute = interval / 60 | 0
-      const second = interval % 60 | 0
+      const minute = (interval / 60) | 0
+      const second = this._pad((interval % 60) | 0)
       return `${minute}:${second}`
+    },
+    changeMode() {
+      const mode = (this.mode + 1) % 3
+      this.setPlayMode(mode)
+    },
+    _pad(num, n = 2) {
+      let len = num.toString().length
+      while (len < n) {
+        num = '0' + num
+        len++
+      }
+      return num
     },
     ready() {
       this.songReady = true
@@ -225,7 +272,8 @@ export default {
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX'
+      setCurrentIndex: 'SET_CURRENT_INDEX',
+      setPlayMode: 'SET_PLAY_MODE'
     })
   },
   watch: {

@@ -11,7 +11,7 @@
       <div class="play-wrapper" ref="playBtn" v-show="songs.length>0">
         <div class="play">
           <i class="icon-play"></i>
-          <span class="text">随机播放全部</span>
+          <span class="text" @click="selectRandom">随机播放全部</span>
         </div>
       </div>
       <div class="filter" ref="filter">
@@ -64,8 +64,14 @@ export default {
         index
       })
     },
+    selectRandom(){
+      this.randomPlay({
+        list: this.songs
+      })
+    },
     ...mapActions([
-      'selectPlay'
+      'selectPlay',
+      'randomPlay'
     ])
   },
   props: {

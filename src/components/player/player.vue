@@ -68,7 +68,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="playEnd"></audio>
     <transition name="alert">
       <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
@@ -81,7 +81,8 @@ import animations from 'create-keyframe-animation'
 import Alert from 'base/alert/alert.vue'
 import progressBar from 'base/progress-bar/progress-bar.vue'
 import progressCircle from 'base/progress-circle/progress-circle.vue'
-import { playMode } from 'common/js/config.js'
+import { playMode, PlayModeNameMap } from 'common/js/config.js'
+import { shuffle } from 'common/js/util.js'
 export default {
   mounted() {},
   data: function() {
@@ -104,7 +105,8 @@ export default {
       'currentSong',
       'playing',
       'currentIndex',
-      'mode'
+      'mode',
+      'sequenceList'
     ]),
     playIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
@@ -147,6 +149,13 @@ export default {
         this.toggleNext()
       }, 1200)
     },
+    _alert(text) {
+      this.alertText = text
+      this.isAlert = true
+      setTimeout(() => {
+        this.isAlert = false
+      }, 1200)
+    },
     togglePlaying() {
       if (!this.songReady) return
       this.setPlayingState(!this.playing)
@@ -160,6 +169,18 @@ export default {
           : this.currentIndex + 1
       )
       this.setPlayingState(true)
+    },
+    playEnd() {
+      if (this.mode === playMode.loop) {
+        this.loop()
+      } else {
+        this.toggleNext()
+      }
+    },
+    loop() {
+      // 循环播放
+      this.$refs.audio.currentTime = 0
+      this.$refs.audio.play()
     },
     togglePrev() {
       if (!this.songReady) return
@@ -213,6 +234,20 @@ export default {
     changeMode() {
       const mode = (this.mode + 1) % 3
       this.setPlayMode(mode)
+      this._alert(PlayModeNameMap[mode])
+      let list = null
+      if (mode === playMode.random) {
+        list = shuffle(this.sequenceList)
+      } else {
+        list = this.sequenceList
+      }
+      this.setPlayList(list)
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex(item => {
+        return item.id === this.currentSong.id
+      })
+      this.setCurrentIndex(index)
     },
     _pad(num, n = 2) {
       let len = num.toString().length
@@ -273,11 +308,13 @@ export default {
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
       setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE'
+      setPlayMode: 'SET_PLAY_MODE',
+      setPlayList: 'SET_PLAYLIST'
     })
   },
   watch: {
-    currentSong() {
+    currentSong(newSong, oldSong) {
+      if (newSong.id === oldSong.id) return
       this.$nextTick(() => {
         this.$refs.audio.play()
       })
@@ -671,6 +708,6 @@ export default {
 }
 
 .alert-enter-active, .alert-leave-active {
-  transition: all 0.6s;
+  transition: all 0.4s;
 }
 </style>

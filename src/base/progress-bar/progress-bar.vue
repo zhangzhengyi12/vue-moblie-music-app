@@ -49,8 +49,9 @@ export default {
       this.$emit('precentChange', percent)
     },
     progressClick(e){
-      this._setOffset(e.offsetX)
-      this._triggerPercent()
+      const rect = this.$refs.progressBar.getBoundingClientRect()
+      const offsetWidth = e.pageX - rect.left
+      this._triggerPercent(offsetWidth)
     },
     progressTouchMove(e) {
       if (!this.touch.initiated) return

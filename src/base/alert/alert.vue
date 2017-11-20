@@ -29,7 +29,7 @@ export default {
    margin-left: -100px
    border-radius: 4px
    text-align : center
-   top: 60vh
+   top: 60vh;
 </style>
 
 

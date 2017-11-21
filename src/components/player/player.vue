@@ -12,7 +12,7 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle" >
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -83,6 +83,7 @@ import progressBar from 'base/progress-bar/progress-bar.vue'
 import progressCircle from 'base/progress-circle/progress-circle.vue'
 import { playMode, PlayModeNameMap } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
+import Lyric from 'lyric-parser'
 export default {
   mounted() {},
   data: function() {
@@ -288,6 +289,12 @@ export default {
       animations.unregisterAnimation('back')
       this.$refs.cdWrapper.style.animation = ''
     },
+    getLyric() {
+      this.currentSong.getLyric().then(lyric => {
+        this.currentLyric = new Lyric(lyric)
+        console.log(this.currentLyric)
+      })
+    },
     _getPostAndScala() {
       const targetWidth = 40
       const paddingLeft = 40 // 小专辑的中心点
@@ -317,6 +324,7 @@ export default {
       if (newSong.id === oldSong.id) return
       this.$nextTick(() => {
         this.$refs.audio.play()
+        this.getLyric()
       })
     },
     playing(newPlaying) {

@@ -12,7 +12,11 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle" >
+        <div class="middle" 
+        @touchstart.prevent="middleTouchStart"
+        @touchmove.prevent="middleTouchMove"
+        @touchend="middleTouchEnd"
+        >
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -20,8 +24,22 @@
               </div>
             </div>
           </div>
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                class="text"
+                :class="{'current': currentLineNum === index}"
+                v-for="(line,index) in currentLyric.lines">{{ line.txt }}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{ format(currentTime) }}</span>
             <div class="progress-bar-wrapper">
@@ -83,7 +101,12 @@ import progressBar from 'base/progress-bar/progress-bar.vue'
 import progressCircle from 'base/progress-circle/progress-circle.vue'
 import { playMode, PlayModeNameMap } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
+import {prefixStyle} from 'common/js/dom.js'
 import Lyric from 'lyric-parser'
+import Scroll from 'base/scroll/scroll.vue'
+
+const transform = prefixStyle('transform')
+// const transtionDuration = prefixStyle('transtion')
 export default {
   mounted() {},
   data: function() {
@@ -91,24 +114,23 @@ export default {
       alertText: '',
       isAlert: false,
       songReady: false,
-      currentTime: 0
+      currentTime: 0,
+      currentLyric: null,
+      currentLineNum: 0,
+      currentShow: 'cd'
     }
   },
   components: {
     Alert,
     progressBar,
-    progressCircle
+    progressCircle,
+    Scroll
+  },
+  created() {
+    this.touch = {}
   },
   computed: {
-    ...mapGetters([
-      'fullScreen',
-      'playList',
-      'currentSong',
-      'playing',
-      'currentIndex',
-      'mode',
-      'sequenceList'
-    ]),
+    ...mapGetters(['fullScreen', 'playList', 'currentSong', 'playing', 'currentIndex', 'mode', 'sequenceList']),
     playIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
     },
@@ -164,11 +186,7 @@ export default {
     toggleNext() {
       if (!this.songReady) return
       this.songReady = false
-      this.setCurrentIndex(
-        this.currentIndex >= this.playList.length - 1
-          ? 0
-          : this.currentIndex + 1
-      )
+      this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
       this.setPlayingState(true)
     },
     playEnd() {
@@ -186,11 +204,7 @@ export default {
     togglePrev() {
       if (!this.songReady) return
       this.songReady = false
-      this.setCurrentIndex(
-        this.currentIndex <= 0
-          ? this.playList.length - 1
-          : this.currentIndex - 1
-      )
+      this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
       this.setPlayingState(true)
     },
     onProgressChange(percent) {
@@ -198,6 +212,49 @@ export default {
       if (!this.playing) {
         this.togglePlaying()
       }
+    },
+    middleTouchStart(e) {
+      // 避免从其他位置移动到此处触发move
+      this.touch.initiated = true
+      const touch = e.touches[0]
+      this.touch.startX = touch.pageX
+      this.touch.startY = touch.pageY
+    },
+    middleTouchMove(e) {
+      if (!this.touch.initiated) {
+        return
+      }
+      const touch = e.touches[0]
+      const deltaX = touch.pageX - this.touch.startX
+      const deltaY = touch.pageY - this.touch.startY
+      if (Math.abs(deltaY) > Math.abs(deltaX)) return
+      const left = this.currentShow === 'cd' ? 0 : -window.innerWidth // 计算歌词面板的left值
+      this.touch.percent = Math.abs(deltaX / window.innerWidth)
+      const width = Math.min(0, Math.max(-window.innerWidth, left + deltaX)) // 避免极限移出屏幕
+      this.$refs.lyricList.$el.style['transform'] = `translate3d(${width}px,0,0)`
+    },
+    middleTouchEnd(e) {
+      // 判断共四种情况下的最终偏移
+      let width = 0
+      if (this.currentShow === 'cd') {
+        if (this.touch.percent < 0.1) {
+          width = 0
+        } else {
+          width = -window.innerWidth
+        }
+        this.currentShow = 'lyric'
+      } else if (this.currentShow === 'lyric') {
+        if (this.touch.percent < 0.1) {
+          width = -window.innerWidth
+        } else {
+          width = 0
+          this.currentShow = 'cd'
+        }
+      }
+      this.touch.initiated = false
+      this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)`
+      // TODO: animate todo 
+      this.$refs.lyricList.$el.style[`transtion`] = 'all 300ms'
     },
     enter(el, done) {
       const { x, y, scale } = this._getPostAndScala()
@@ -290,10 +347,26 @@ export default {
       this.$refs.cdWrapper.style.animation = ''
     },
     getLyric() {
-      this.currentSong.getLyric().then(lyric => {
-        this.currentLyric = new Lyric(lyric)
-        console.log(this.currentLyric)
-      })
+      this.currentSong.getLyric().then(
+        lyric => {
+          this.currentLyric = new Lyric(lyric, this.handeLyric)
+          if (this.playing) {
+            this.currentLyric.play()
+          }
+        },
+        err => {
+          this.currentLyric = new Lyric(err)
+        }
+      )
+    },
+    handeLyric({ lineNum, txt }) {
+      this.currentLineNum = lineNum
+      if (lineNum >= 5) {
+        let lineEnm = this.$refs.lyricLine[lineNum - 5]
+        this.$refs.lyricList.scrollToEle(lineEnm, 1000)
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000)
+      }
     },
     _getPostAndScala() {
       const targetWidth = 40

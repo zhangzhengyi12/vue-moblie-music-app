@@ -12,12 +12,12 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle" 
+        <div class="middle"
         @touchstart.prevent="middleTouchStart"
         @touchmove.prevent="middleTouchMove"
         @touchend="middleTouchEnd"
         >
-          <div class="middle-l">
+          <div class="middle-l" ref="middle">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
@@ -101,7 +101,7 @@ import progressBar from 'base/progress-bar/progress-bar.vue'
 import progressCircle from 'base/progress-circle/progress-circle.vue'
 import { playMode, PlayModeNameMap } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
-import {prefixStyle} from 'common/js/dom.js'
+import { prefixStyle } from 'common/js/dom.js'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll.vue'
 
@@ -224,6 +224,7 @@ export default {
       if (!this.touch.initiated) {
         return
       }
+      const opacity = this.currentShow === 'cd' ? 1 - this.touch.percent : this.touch.percent // 在不同页面下透明度应有不同的函数
       const touch = e.touches[0]
       const deltaX = touch.pageX - this.touch.startX
       const deltaY = touch.pageY - this.touch.startY
@@ -232,29 +233,43 @@ export default {
       this.touch.percent = Math.abs(deltaX / window.innerWidth)
       const width = Math.min(0, Math.max(-window.innerWidth, left + deltaX)) // 避免极限移出屏幕
       this.$refs.lyricList.$el.style['transform'] = `translate3d(${width}px,0,0)`
+      this.$refs.middle.style['opacity'] = opacity
+      this.$refs.lyricList.$el.style[`transition`] = 0
+      this.$refs.middle.style['transition'] = 0
     },
     middleTouchEnd(e) {
       // 判断共四种情况下的最终偏移
       let width = 0
+      let opacity = 1
       if (this.currentShow === 'cd') {
-        if (this.touch.percent < 0.1) {
-          width = 0
-        } else {
+        if (this.touch.percent > 0.1) {
+          // 避免percent不存在
           width = -window.innerWidth
+          opacity = 0
+          this.currentShow = 'lyric'
+        } else {
+          width = 0
+          opacity = 1
         }
-        this.currentShow = 'lyric'
       } else if (this.currentShow === 'lyric') {
-        if (this.touch.percent < 0.1) {
-          width = -window.innerWidth
-        } else {
+        if (this.touch.percent > 0.1) {
           width = 0
+          opacity = 1
           this.currentShow = 'cd'
+        } else {
+          width = -window.innerWidth
+          opacity = 0
         }
       }
       this.touch.initiated = false
       this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)`
-      // TODO: animate todo 
-      this.$refs.lyricList.$el.style[`transtion`] = 'all 300ms'
+      this.$refs.lyricList.$el.style[`transition`] = 'all 500ms'
+      this.$refs.middle.style['transition'] = 'all 500ms'
+      this.$refs.middle.style['opacity'] = opacity
+
+      // clear
+
+      this.touch.percent = 0
     },
     enter(el, done) {
       const { x, y, scale } = this._getPostAndScala()

@@ -23,6 +23,9 @@
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{ playingLyric }}</div>
+            </div>
           </div>
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
@@ -117,7 +120,8 @@ export default {
       currentTime: 0,
       currentLyric: null,
       currentLineNum: 0,
-      currentShow: 'cd'
+      currentShow: 'cd',
+      playingLyric: ''
     }
   },
   components: {
@@ -185,9 +189,14 @@ export default {
     },
     toggleNext() {
       if (!this.songReady) return
+      if (this.playList.length === 1) {
+        // 防止边界导致歌词等无法更新
+        this.loop()
+      } else {
+        this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
+        this.setPlayingState(true)
+      }
       this.songReady = false
-      this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
-      this.setPlayingState(true)
     },
     playEnd() {
       if (this.mode === playMode.loop) {
@@ -200,18 +209,25 @@ export default {
       // 循环播放
       this.$refs.audio.currentTime = 0
       this.$refs.audio.play()
+      this.currentLyric && this.currentLyric.seek(0)
     },
     togglePrev() {
       if (!this.songReady) return
+      if (this.playList.length === 1) {
+        this.loop()
+      } else {
+        this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
+        this.setPlayingState(true)
+      }
       this.songReady = false
-      this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
-      this.setPlayingState(true)
     },
     onProgressChange(percent) {
-      this.$refs.audio.currentTime = Number(percent * this.currentSong.duration)
+      const currentTime = Number(percent * this.currentSong.duration)
+      this.$refs.audio.currentTime = currentTime
       if (!this.playing) {
         this.togglePlaying()
       }
+      this.currentLyric && this.currentLyric.seek(currentTime * 1000)
     },
     middleTouchStart(e) {
       // 避免从其他位置移动到此处触发move
@@ -362,17 +378,24 @@ export default {
       this.$refs.cdWrapper.style.animation = ''
     },
     getLyric() {
-      this.currentSong.getLyric().then(
-        lyric => {
-          this.currentLyric = new Lyric(lyric, this.handeLyric)
-          if (this.playing) {
-            this.currentLyric.play()
+      this.currentSong
+        .getLyric()
+        .then(
+          lyric => {
+            this.currentLyric = new Lyric(lyric, this.handeLyric)
+            if (this.playing) {
+              this.currentLyric.play()
+            }
+          },
+          err => {
+            console.log(err)
           }
-        },
-        err => {
-          this.currentLyric = new Lyric(err)
-        }
-      )
+        )
+        .catch(() => {
+          this.currentLyric = null
+          this.playingLyric = '歌词获取失败'
+          this.currentLineNum = 0
+        })
     },
     handeLyric({ lineNum, txt }) {
       this.currentLineNum = lineNum
@@ -382,6 +405,7 @@ export default {
       } else {
         this.$refs.lyricList.scrollTo(0, 0, 1000)
       }
+      this.playingLyric = txt
     },
     _getPostAndScala() {
       const targetWidth = 40
@@ -409,14 +433,17 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
-      if (newSong.id === oldSong.id) return
-      this.$nextTick(() => {
+      if (newSong.id === oldSong.id) return // 单曲循环，不做切换
+      this.currentLyric && this.currentLyric.stop() // 清除计时器
+      this.currentLineNum = -1 // 避免当前歌词停留
+      setTimeout(() => {
         this.$refs.audio.play()
         this.getLyric()
-      })
+      }, 1000)
     },
     playing(newPlaying) {
       const audio = this.$refs.audio
+      this.currentLyric && this.currentLyric.togglePlay() // 切换歌词
       this.$nextTick(() => {
         newPlaying ? audio.play() : audio.pause()
       })

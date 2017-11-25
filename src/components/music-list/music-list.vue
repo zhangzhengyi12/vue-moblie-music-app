@@ -37,11 +37,13 @@ import Scroll from 'base/scroll/scroll.vue'
 import Loading from 'base/loading/loading.vue'
 import { prefixStyle } from 'common/js/dom.js'
 import { mapActions } from 'vuex'
+import { playListMixin } from 'common/js/mixin.js'
 
 const transformName = prefixStyle('transform')
 const backdropFilterName = prefixStyle('backdrop-filter')
 
 export default {
+  mixins: [playListMixin],
   created() {
     this.probeType = 3
     this.listenScroll = true
@@ -64,15 +66,18 @@ export default {
         index
       })
     },
-    selectRandom(){
+    selectRandom() {
       this.randomPlay({
         list: this.songs
       })
     },
-    ...mapActions([
-      'selectPlay',
-      'randomPlay'
-    ])
+    handlePlayList(playList){
+      // 这个回调放到mixin里
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list.refresh()
+    },
+    ...mapActions(['selectPlay', 'randomPlay'])
   },
   props: {
     bgImage: {

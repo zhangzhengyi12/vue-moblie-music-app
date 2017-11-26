@@ -1,5 +1,6 @@
 <template>
-  <div class="player" v-show="playList.length>0">
+  <div class="player" v-show="playList.length>0"> 
+    <!-- 未选择 -->
     <transition name="normal" @enter="enter" @after-enter="afterEnter" @leave="leave" @after-leave="leaveEnter">
       <div class="normal-player" v-show="fullScreen">
         <div class="background">

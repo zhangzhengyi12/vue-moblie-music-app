@@ -8,4 +8,6 @@ export const playList = state => state.playData.playList
 export const sequenceList = state => state.playData.sequenceList
 export const mode = state => state.playData.mode
 export const currentIndex = state => state.playData.currentIndex
-export const currentSong = (state) => { return state.playData.playList[state.playData.currentIndex] || {} }
+export const currentSong = state => state.playData.playList[state.playData.currentIndex] || {}
+
+export const diss = state => state.diss

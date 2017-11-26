@@ -5,6 +5,7 @@ import Search from 'components/search/search.vue'
 import Recommend from 'components/recommend/recommend.vue'
 import Singer from 'components/singer/singer.vue'
 import SingerDetail from 'components/singer-detail/singer-detail.vue'
+import Dist from 'components/dist/dist.vue'
 
 Vue.use(Router)
 
@@ -17,7 +18,13 @@ export default new Router({
     },
     {
       path: '/recommend',
-      component: Recommend
+      component: Recommend,
+      children: [
+        {
+          path: ':id',
+          component: Dist
+        }
+      ]
     },
     {
       path: '/search',

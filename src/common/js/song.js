@@ -27,7 +27,7 @@ export default class Song {
   }
 }
 
-export function creatSong(musicData) {
+export function createSong(musicData) {
   return new Song({
     id: musicData.songid,
     mid: musicData.songmid,

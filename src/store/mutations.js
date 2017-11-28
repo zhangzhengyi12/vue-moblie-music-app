@@ -71,7 +71,7 @@ const mutations = {
   [types.SET_CURRENT_INDEX](state, index) {
     state.playData.currentIndex = index
   },
-  [types.SET_DISS](state, item) {
+  [types.SET_DISC](state, item) {
     state.diss = item
   }
 }

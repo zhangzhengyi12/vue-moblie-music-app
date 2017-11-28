@@ -10,4 +10,4 @@ export const mode = state => state.playData.mode
 export const currentIndex = state => state.playData.currentIndex
 export const currentSong = state => state.playData.playList[state.playData.currentIndex] || {}
 
-export const diss = state => state.diss
+export const disc = state => state.diss

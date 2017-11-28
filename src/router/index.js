@@ -5,7 +5,7 @@ import Search from 'components/search/search.vue'
 import Recommend from 'components/recommend/recommend.vue'
 import Singer from 'components/singer/singer.vue'
 import SingerDetail from 'components/singer-detail/singer-detail.vue'
-import Dist from 'components/dist/dist.vue'
+import Dist from 'components/disc/disc.vue'
 
 Vue.use(Router)
 

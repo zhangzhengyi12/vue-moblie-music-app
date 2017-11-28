@@ -59,10 +59,10 @@ export default {
       this.$router.push({
         path: `/recommend/${item.dissid}`
       })
-      this.setDiss(item)
+      this.setDisc(item)
     },
     ...mapMutations({
-      setDiss: 'SET_DISS'
+      setDisc: 'SET_DISC'
     })
   },
   components: {

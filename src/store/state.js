@@ -13,7 +13,8 @@ const state = {
     mode: playMode.sequence,
     currentIndex: -1
   },
-  diss: {}
+  diss: {},
+  topList: {}
 }
 
 export default state

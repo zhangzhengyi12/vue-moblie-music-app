@@ -20,7 +20,7 @@
     <div class="bg-layer" ref="bgLayer"></div>
     <scroll :data="songs" class="list" ref="list" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs" @select="selectItem"></song-list>
+        <song-list :songs="songs" @select="selectItem" :isRank="isRank"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -71,7 +71,7 @@ export default {
         list: this.songs
       })
     },
-    handlePlayList(playList){
+    handlePlayList(playList) {
       // 这个回调放到mixin里
       const bottom = playList.length > 0 ? '60px' : ''
       this.$refs.list.$el.style.bottom = bottom
@@ -93,6 +93,10 @@ export default {
     title: {
       type: String,
       default: ''
+    },
+    isRank: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {

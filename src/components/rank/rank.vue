@@ -1,7 +1,6 @@
 <template>
-  <div class="rank">
-    <scroll :data="rankData" ref="scroll">
-    <div class="toplist">
+  <div class="rank" ref="rank">
+    <scroll :data="rankData" ref="scroll" class="toplist">
       <!-- all -->
       <ul>
         <!-- two rank list -->
@@ -9,7 +8,7 @@
           <h3 class="toptitle">{{ rankGroup.GroupName }}</h3>
           <ul>
             <!-- rank -->
-            <li class="item" v-for="rank in rankGroup.List">
+            <li class="item" v-for="rank in rankGroup.List" @click="selectItem(rank)">
               <div class="icon">
                 <img width="100" height="100" :src="rank.pic_v12">
               </div>
@@ -23,7 +22,6 @@
           </ul>
         </li>
       </ul> 
-    </div>
     </scroll>
     <router-view></router-view>
   </div>
@@ -31,9 +29,12 @@
 
 <script type="text/ecmascript-6">
 import { getRankList } from 'api/rank.js'
+import { mapMutations } from 'vuex'
 import Scroll from 'base/scroll/scroll.vue'
+import { playListMixin } from 'common/js/mixin.js'
 
 export default {
+  mixins: [playListMixin],
   created() {
     this._getRank()
   },
@@ -52,6 +53,20 @@ export default {
           this.rankData = res
         }
       })
+    },
+    selectItem(rank) {
+      this.$router.push({
+        path: `/rank/${rank.ListName}`
+      })
+      this.setTopList(rank)
+    },
+    ...mapMutations({
+      setTopList: 'SET_TOP_LIST'
+    }),
+    handlePlayList(playList) {
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.rank.style.bottom = bottom
+      this.$refs.scroll.refresh() // 刷新视口
     }
   },
   watch: {

@@ -13,7 +13,9 @@ export default class Song {
     this.url = url
   }
   getLyric() {
-    if (this.lyric) { return Promise.resolve(this.lyric) }
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
     return new Promise((resolve, reject) => {
       getLyric(this.mid).then(res => {
         if (res.retcode === ERR_OK) {
@@ -31,7 +33,7 @@ export function createSong(musicData) {
   return new Song({
     id: musicData.songid,
     mid: musicData.songmid,
-    singer: fliterSinger(musicData.singer),
+    singer: filterSinger(musicData.singer),
     name: musicData.songname,
     album: musicData.albumname,
     duration: musicData.interval,
@@ -40,7 +42,7 @@ export function createSong(musicData) {
   })
 }
 
-function fliterSinger(singer) {
+export function filterSinger(singer) {
   // 处理多个歌手的情况
   let ret = []
   if (!singer) {

@@ -1,9 +1,10 @@
 <template>
   <div class="search">
     <div class="search-box-wrapper">
-      <search-box ref="searchBox"></search-box>
+      <search-box ref="searchBox" @query="onQueryChange"></search-box>
     </div>
-    <div class="shortcut-wrapper">
+    <!-- 当query存在 隐藏热门搜索 -->
+    <div class="shortcut-wrapper" v-show="!query"> 
       <div class="shortcut">
         <div class="hot-key">
           <h1 class="title">热门搜索</h1>
@@ -15,6 +16,9 @@
         </div>
       </div>
     </div>
+    <div class="search-result" v-show="query">
+      <suggest :query="query" ></suggest>
+    </div>
   </div>
 </template>
 
@@ -22,17 +26,20 @@
 import SearchBox from 'base/search-box/search-box.vue'
 import { getHotKey } from 'api/search.js'
 import { ERR_OK } from 'api/config.js'
+import Suggest from 'components/suggest/suggest.vue'
 export default {
   created() {
     this._getHotKey()
   },
   data: function() {
     return {
-      hotKey: []
+      hotKey: [],
+      query: ''
     }
   },
   components: {
-    SearchBox
+    SearchBox,
+    Suggest
   },
   methods: {
     _getHotKey() {
@@ -43,7 +50,11 @@ export default {
       })
     },
     addQuery(query) {
+      console.log('why')
       this.$refs.searchBox.setQuery(query)
+    },
+    onQueryChange(newQuery) {
+      this.query = newQuery
     }
   }
 }

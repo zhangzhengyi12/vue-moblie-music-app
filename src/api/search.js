@@ -15,7 +15,7 @@ export function getHotKey() {
   return jsonp(url, data, opations)
 }
 
-export function getSuggest(query, pageIndex, isCatZhida) {
+export function getSuggest(query, pageIndex, isCatZhida, n) {
   const url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp'
 
   const data = Object.assign({}, common, {
@@ -28,8 +28,9 @@ export function getSuggest(query, pageIndex, isCatZhida) {
     g_tk: 5381,
     p: pageIndex,
     w: query,
+    n: n,
     remoteplace: 'txt.yqq.center',
-    catZhida: isCatZhida ? 1 : 0
+    catZhida: isCatZhida && pageIndex === 1 ? 1 : 0
   })
 
   return jsonp(url, data, opations)

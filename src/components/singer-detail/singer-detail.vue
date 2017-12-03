@@ -26,9 +26,7 @@ export default {
   methods: {
     _getDetail() {
       if (!this.singer.id) {
-        this.$router.push({
-          path: '/singer'
-        })
+        this.$router.back()
       }
       getSingerDetail(this.singer.id)
         .then((res) => {

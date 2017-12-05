@@ -28,6 +28,10 @@ export default {
     pullUp: {
       type: Boolean,
       default: false
+    },
+    beforeScroll: {
+      type: Boolean,
+      default: false
     }
   },
   mounted() {
@@ -56,6 +60,11 @@ export default {
             // 接近底部
             this.$emit('scrollToEnd')
           }
+        })
+      }
+      if (this.beforeScroll) {
+        this.scroll.on('beforeScrollStart', () => {
+          this.$emit('beforeScroll')
         })
       }
     },

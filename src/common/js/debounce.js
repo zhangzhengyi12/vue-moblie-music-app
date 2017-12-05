@@ -16,8 +16,9 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function(...args) {
+  return function(..._args) {
     context = this
+    args = _args // 重新赋值，避免重复调用得不到更新
     timestamp = Date.now() // 刷新最新一次调用该防抖函数的时间戳
     let callNow = immediate && !timeout // 是否需要立即调用一次，
     if (!timeout) timeout = setTimeout(later, wait) // 同一时间内只存在一个超时

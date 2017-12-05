@@ -1,5 +1,10 @@
 <template>
-  <scroll class="suggest" :pullUp="pullUp" @scrollToEnd="searchMore" ref="scroll">
+  <scroll class="suggest"
+  :beforeScroll="beforeScroll" 
+  :pullUp="pullUp"
+  @scrollToEnd="searchMore" 
+  ref="scroll"
+  @beforeScroll="listScroll">
     <ul class="suggest-list">
       <li class="suggest-item" v-for="item of result" @click="onSelectItem(item)">
         <div class="icon">
@@ -11,6 +16,9 @@
       </li>
       <loading v-show="hasMore"></loading>
     </ul>
+    <div class="no-result-wrapper" v-show="isNoResult">
+      <no-result title="搜索不到结果"></no-result>
+    </div>
   </scroll>
 </template>
 
@@ -20,12 +28,13 @@ import { ERR_OK } from 'api/config.js'
 import { createSong } from 'common/js/song.js'
 import Scroll from 'base/scroll/scroll.vue'
 import Loading from 'base/loading/loading.vue'
-import { debounce } from 'common/js/debounce.js'
-import { mapMutations } from 'vuex'
+import { mapMutations, mapActions } from 'vuex'
+import NoResult from 'base/no-result/no-result.vue'
 import Singer from 'common/js/singer.js'
 
 const TYPE_SINGER = 'singer'
 const PER_PAGE = 20
+const NO_RESULT_MESSAGE = 'no results'
 
 export default {
   props: {
@@ -40,23 +49,24 @@ export default {
   },
   components: {
     Scroll,
-    Loading
+    Loading,
+    NoResult
   },
   data: function() {
     return {
       page: 1,
       result: [],
       pullUp: true,
-      hasMore: true
+      hasMore: true,
+      beforeScroll: true,
+      isNoResult: false
     }
-  },
-  created() {
-    this.search = debounce(this.search, 300, false) // 防抖
   },
   methods: {
     search() {
       getSuggest(this.query, this.page, this.showSinger, PER_PAGE).then(res => {
         if (res.code === ERR_OK) {
+          this._checkNoResult(res.message)
           this.result = this.result.concat(this._genResult(res.data)) // 兼容more
           this.checkHasMore(res.data) // 处理数据并检测是否拥有下一页
         }
@@ -81,6 +91,14 @@ export default {
       })
       return ret
     },
+    _checkNoResult(message) {
+      if (message === NO_RESULT_MESSAGE) {
+        this.isNoResult = true
+        this.hasMore = false
+      } else {
+        this.isNoResult = false
+      }
+    },
     checkHasMore(data) {
       const song = data.song
       if (!song.list.length || song.curnum + song.curpage * PER_PAGE > song.totalnum) {
@@ -100,6 +118,7 @@ export default {
     },
     onSelectItem(item) {
       item.type === TYPE_SINGER ? this.goSingerDetail(item) : this.goSongPlay(item)
+      this.$emit('select')
     },
     goSingerDetail(item) {
       const singer = new Singer(item.singerMID, item.singerName)
@@ -107,6 +126,12 @@ export default {
         path: `/search/${singer.id}`
       })
       this.setSinger(singer)
+    },
+    listScroll(){
+      this.$emit('listScroll')
+    },
+    goSongPlay(item) {
+      this.insertSong(item)
     },
     searchMore() {
       if (!this.hasMore) {
@@ -118,7 +143,8 @@ export default {
     },
     ...mapMutations({
       setSinger: 'SET_SINGER'
-    })
+    }),
+    ...mapActions(['insertSong'])
   },
   watch: {
     query() {

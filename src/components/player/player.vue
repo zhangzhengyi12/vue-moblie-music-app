@@ -437,6 +437,7 @@ export default {
       if (newSong.id === oldSong.id) return // 单曲循环，不做切换
       this.currentLyric && this.currentLyric.stop() // 清除计时器
       this.currentLineNum = -1 // 避免当前歌词停留
+      this.playingLyric = ''
       setTimeout(() => {
         this.$refs.audio.play()
         this.getLyric()

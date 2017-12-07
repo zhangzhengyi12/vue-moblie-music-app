@@ -21,7 +21,17 @@ function insertArray(_arr, val, compare, maxlen) {
   return arr
 }
 
-export function saveSearch(query) {
+function delArray(_arr, compare) {
+  let arr = _arr.slice()
+  const index = arr.findIndex(compare)
+  if (index < 0) {
+    return arr
+  }
+  arr.splice(index, 1)
+  return arr
+}
+
+export function saveSearchLocal(query) {
   let searches = storage.get(SEARCH_KEY, [])
   const newSearches = insertArray(
     searches,
@@ -32,6 +42,21 @@ export function saveSearch(query) {
     MAX_SEARCH_HISTORY
   )
 
+  storage.set(SEARCH_KEY, newSearches)
+  return newSearches
+}
+
+export function deleteSearchLocal(query) {
+  let searches = storage.get(SEARCH_KEY, [])
+  const newSearches = delArray(searches, item => {
+    return item === query
+  })
+  storage.set(SEARCH_KEY, newSearches)
+  return newSearches
+}
+
+export function clearSearchLocal() {
+  let newSearches = []
   storage.set(SEARCH_KEY, newSearches)
   return newSearches
 }

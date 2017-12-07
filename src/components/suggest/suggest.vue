@@ -105,6 +105,9 @@ export default {
         this.hasMore = false
       }
     },
+    refresh(){
+      this.$refs.scroll.refresh()
+    },
     getIconCls(item) {
       return item.type === TYPE_SINGER ? 'icon-mine' : 'icon-music'
     },

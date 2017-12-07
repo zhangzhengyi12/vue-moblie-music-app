@@ -86,7 +86,7 @@
           </progress-circle>
         </div>
         <div class="control">
-          <i class="icon-playlist"></i>
+          <i class="icon-playlist" @click.stop="showPlayList" ></i>
         </div>
       </div>
     </transition>
@@ -94,6 +94,7 @@
     <transition name="alert">
       <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
+    <play-list :showFlag="isShowPlayList" ref="playlist" @changeMode="changeMode"></play-list>
   </div>
 </template>
 
@@ -103,16 +104,17 @@ import animations from 'create-keyframe-animation'
 import Alert from 'base/alert/alert.vue'
 import progressBar from 'base/progress-bar/progress-bar.vue'
 import progressCircle from 'base/progress-circle/progress-circle.vue'
-import { playMode, PlayModeNameMap } from 'common/js/config.js'
-import { shuffle } from 'common/js/util.js'
 import { prefixStyle } from 'common/js/dom.js'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll.vue'
+import { playMode, PlayModeNameMap } from 'common/js/config.js'
+import { shuffle } from 'common/js/util.js'
+import PlayList from 'components/playlist/playlist.vue'
+import { playerMixin } from 'common/js/mixin.js'
 
 const transform = prefixStyle('transform')
-// const transtionDuration = prefixStyle('transtion')
 export default {
-  mounted() {},
+  mixins: [playerMixin],
   data: function() {
     return {
       alertText: '',
@@ -122,14 +124,16 @@ export default {
       currentLyric: null,
       currentLineNum: 0,
       currentShow: 'cd',
-      playingLyric: ''
+      playingLyric: '',
+      isShowPlayList: false
     }
   },
   components: {
     Alert,
     progressBar,
     progressCircle,
-    Scroll
+    Scroll,
+    PlayList
   },
   created() {
     this.touch = {}
@@ -331,6 +335,7 @@ export default {
       } else {
         list = this.sequenceList
       }
+      this.resetCurrentIndex(list)
       this.setPlayList(list)
     },
     resetCurrentIndex(list) {
@@ -408,6 +413,12 @@ export default {
       }
       this.playingLyric = txt
     },
+    showPlayList() {
+      this.$refs.playlist.show()
+    },
+    hidePlayList() {
+      this.$refs.playlist.hide()
+    },
     _getPostAndScala() {
       const targetWidth = 40
       const paddingLeft = 40 // 小专辑的中心点
@@ -434,7 +445,9 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
+      console.log(newSong, oldSong)
       if (newSong.id === oldSong.id) return // 单曲循环，不做切换
+      if (!newSong.id) return // song没有ID 列表被清空
       this.currentLyric && this.currentLyric.stop() // 清除计时器
       this.currentLineNum = -1 // 避免当前歌词停留
       this.playingLyric = ''

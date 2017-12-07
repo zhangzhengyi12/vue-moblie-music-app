@@ -4,7 +4,7 @@ import { getSingerList } from 'api/singer.js'
 import * as types from './mutation-type.js'
 import { playMode } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
-import { saveSearch } from 'common/js/cache.js'
+import { saveSearchLocal, deleteSearchLocal, clearSearchLocal } from 'common/js/cache.js'
 
 const KEY_NAME = 'singerList'
 
@@ -55,6 +55,45 @@ const selectPlay = function({ commit, state }, { list, index }) {
   commit(types.SET_CURRENT_INDEX, index)
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
+}
+
+const deleteSong = function({ commit, state }, song) {
+  let sequenceList = state.playData.sequenceList.slice()
+  let playList = state.playData.playList.slice()
+  let currentIndex = state.playData.currentIndex
+
+  const sIndex = sequenceList.findIndex(item => {
+    return item.id === song.id
+  })
+  const pIndex = playList.findIndex(item => {
+    return item.id === song.id
+  })
+
+  if (sIndex >= 0) {
+    sequenceList.splice(sIndex, 1)
+  }
+  if (pIndex >= 0) {
+    playList.splice(pIndex, 1)
+  }
+  if (pIndex === currentIndex) {
+    currentIndex++
+  }
+  // 数组下标变化
+  if (pIndex < currentIndex || currentIndex === playList.length) {
+    currentIndex--
+  }
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_PLAYLIST, playList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+  const playState = playList.length > 0
+  commit(types.SET_PLAYING_STATE, playState)
+}
+
+const clearPlayList = function({ commit }) {
+  commit(types.SET_PLAYLIST, [])
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_CURRENT_INDEX, -1)
+  commit(types.SET_PLAYING_STATE, false)
 }
 
 const randomPlay = function({ commit }, { list }) {
@@ -109,7 +148,15 @@ const insertSong = function({ commit, state }, song) {
 }
 
 const saveSearchHistory = function({ commit }, query) {
-  commit(types.SET_SEARCH_HISTORY, saveSearch(query))
+  commit(types.SET_SEARCH_HISTORY, saveSearchLocal(query))
+}
+
+const delSearchHistory = function({ commit }, query) {
+  commit(types.SET_SEARCH_HISTORY, deleteSearchLocal(query))
+}
+
+const clearHistory = function({ commit }) {
+  commit(types.SET_SEARCH_HISTORY, clearSearchLocal())
 }
 
 const actions = {
@@ -118,7 +165,11 @@ const actions = {
   randomPlay,
   selectPlay,
   insertSong,
-  saveSearchHistory
+  saveSearchHistory,
+  delSearchHistory,
+  clearHistory,
+  deleteSong,
+  clearPlayList
 }
 
 export default actions

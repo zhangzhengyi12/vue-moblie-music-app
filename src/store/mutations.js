@@ -6,7 +6,7 @@ import Singer from 'common/js/singer.js'
 const mutations = {
   [types.GET_SLIDER](state) {
     let sData = state.recommendData.focus
-    sData.forEach(function (element) {
+    sData.forEach(function(element) {
       element.GO = getJump(element.id, element.type)
     }, this)
     state.slider = sData
@@ -79,6 +79,9 @@ const mutations = {
   },
   [types.SET_SEARCH_HISTORY](state, history) {
     state.searchHistory = history
+  },
+  [types.SET_PLAY_HISTORY](state, history) {
+    state.playHistory = history
   }
 }
 

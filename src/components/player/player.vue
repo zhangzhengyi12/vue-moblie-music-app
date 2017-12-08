@@ -90,7 +90,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="playEnd"></audio>
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error.stop="error" @timeupdate="updateTime" @ended="playEnd"></audio>
     <transition name="alert">
       <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
@@ -99,7 +99,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import animations from 'create-keyframe-animation'
 import Alert from 'base/alert/alert.vue'
 import progressBar from 'base/progress-bar/progress-bar.vue'
@@ -107,9 +107,10 @@ import progressCircle from 'base/progress-circle/progress-circle.vue'
 import { prefixStyle } from 'common/js/dom.js'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll.vue'
-import { playMode, PlayModeNameMap } from 'common/js/config.js'
+import { playMode } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
 import PlayList from 'components/playlist/playlist.vue'
+import Song from 'common/js/song.js'
 import { playerMixin } from 'common/js/mixin.js'
 
 const transform = prefixStyle('transform')
@@ -166,6 +167,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['savePlayHistory']),
     closeNormalPlayer() {
       this.setFullScreen(false)
     },
@@ -328,7 +330,7 @@ export default {
     changeMode() {
       const mode = (this.mode + 1) % 3
       this.setPlayMode(mode)
-      this._alert(PlayModeNameMap[mode])
+      this._alert(this.modeText)
       let list = null
       if (mode === playMode.random) {
         list = shuffle(this.sequenceList)
@@ -384,6 +386,9 @@ export default {
       this.$refs.cdWrapper.style.animation = ''
     },
     getLyric() {
+      if (!this.currentSong.getLyric) {
+        this.currentSong = new Song(this.currentSong)
+      }
       this.currentSong
         .getLyric()
         .then(
@@ -445,14 +450,15 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
-      console.log(newSong, oldSong)
-      if (newSong.id === oldSong.id) return // 单曲循环，不做切换
-      if (!newSong.id) return // song没有ID 列表被清空
+      if (!newSong.id || newSong.id === oldSong.id) {
+        return
+      }
       this.currentLyric && this.currentLyric.stop() // 清除计时器
       this.currentLineNum = -1 // 避免当前歌词停留
       this.playingLyric = ''
       setTimeout(() => {
         this.$refs.audio.play()
+        this.songReady && this.savePlayHistory(newSong)
         this.getLyric()
       }, 1000)
     },

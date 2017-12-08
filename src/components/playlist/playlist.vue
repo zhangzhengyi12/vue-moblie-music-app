@@ -5,7 +5,7 @@
         <div class="list-header">
           <h1 class="title">
             <i class="icon" :class="iconMode" @click.stop="$emit('changeMode')"></i>
-            <span class="text"></span>
+            <span class="text">{{ modeText }}</span>
             <span class="clear" @click="sureClearPlayList" ><i class="icon-clear"></i></span>
           </h1>
         </div>
@@ -24,7 +24,7 @@
           </transition-group>
         </scroll>
         <div class="list-operate">
-          <div class="add">
+          <div class="add" @click="addSong">
             <i class="icon-add"></i>
             <span class="text">添加歌曲到队列</span>
           </div>
@@ -34,6 +34,7 @@
         </div>
       </div>
        <confirm ref="confirm" :text="'确定要清空播放列表吗？'" @confirm="confirm" :confirmBtnText="'清空'"></confirm>
+       <add-song ref="addSong"></add-song>
     </div>
   </transition>
 </template>
@@ -44,6 +45,7 @@ import { playMode } from 'common/js/config'
 import Scroll from 'base/scroll/scroll.vue'
 import Confirm from 'base/confirm/confirm.vue'
 import { playerMixin } from 'common/js/mixin.js'
+import AddSong from 'components/add-song/add-song.vue'
 
 export default {
   mixins: [playerMixin],
@@ -54,7 +56,8 @@ export default {
   },
   components: {
     Scroll,
-    Confirm
+    Confirm,
+    AddSong
   },
   methods: {
     show() {
@@ -73,6 +76,9 @@ export default {
         return 'icon-play'
       }
       return ''
+    },
+    addSong(){
+      this.$refs.addSong.show()
     },
     select(item, index) {
       if (this.mode === playMode.random) {

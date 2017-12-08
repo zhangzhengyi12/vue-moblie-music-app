@@ -2,6 +2,8 @@ import storage from 'good-storage'
 
 const SEARCH_KEY = '__search__'
 const MAX_SEARCH_HISTORY = 15
+const PLAY_KEY = '__PLAY__'
+const MAX_PLAY_HISTORY = 100
 
 function insertArray(_arr, val, compare, maxlen) {
   let arr = _arr.slice()
@@ -63,4 +65,23 @@ export function clearSearchLocal() {
 
 export function loadSearch() {
   return storage.get(SEARCH_KEY, [])
+}
+
+export function savePlayLocal(song) {
+  let play = storage.get(PLAY_KEY, [])
+  // 避免重复
+  const newPlayHistory = insertArray(
+    play,
+    song,
+    item => {
+      return item.id === song.id
+    },
+    MAX_PLAY_HISTORY
+  )
+  storage.set(PLAY_KEY, newPlayHistory)
+  return newPlayHistory
+}
+
+export function loadPlayHistory() {
+  return storage.get(PLAY_KEY, [])
 }

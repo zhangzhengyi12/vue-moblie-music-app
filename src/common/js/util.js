@@ -20,6 +20,5 @@ export function delArray(_arr, compare) {
     return arr
   }
   arr.splice(index, 1)
-  console.log(arr)
   return arr
 }

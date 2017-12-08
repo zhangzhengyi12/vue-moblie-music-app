@@ -57,7 +57,7 @@ export default {
       page: 1,
       result: [],
       pullUp: true,
-      hasMore: true,
+      hasMore: false,
       beforeScroll: true,
       isNoResult: false
     }
@@ -105,7 +105,7 @@ export default {
         this.hasMore = false
       }
     },
-    refresh(){
+    refresh() {
       this.$refs.scroll.refresh()
     },
     getIconCls(item) {
@@ -117,7 +117,11 @@ export default {
     _reInitTag() {
       this.page = 1
       this.result = []
-      this.hasMore = true
+      if (!this.query) {
+        this.hasMore = false
+      } else {
+        this.hasMore = true
+      }
     },
     onSelectItem(item) {
       item.type === TYPE_SINGER ? this.goSingerDetail(item) : this.goSongPlay(item)
@@ -130,7 +134,7 @@ export default {
       })
       this.setSinger(singer)
     },
-    listScroll(){
+    listScroll() {
       this.$emit('listScroll')
     },
     goSongPlay(item) {

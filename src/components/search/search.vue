@@ -35,17 +35,12 @@
   </div>
 </template>
 <script>
-import SearchBox from 'base/search-box/search-box.vue'
 import { getHotKey } from 'api/search.js'
 import { ERR_OK } from 'api/config.js'
-import { mapActions, mapGetters } from 'vuex'
-import Suggest from 'components/suggest/suggest.vue'
 import SearchList from 'base/search-list/search-list.vue'
-import { playListMixin } from 'common/js/mixin.js'
-import Confirm from 'base/confirm/confirm.vue'
-import Scroll from 'base/scroll/scroll.vue'
+import { playListMixin, searchMixin } from 'common/js/mixin.js'
 export default {
-  mixins: [playListMixin],
+  mixins: [playListMixin, searchMixin],
   created() {
     this._getHotKey()
   },
@@ -56,53 +51,21 @@ export default {
     }
   },
   components: {
-    SearchBox,
-    Suggest,
-    SearchList,
-    Confirm,
-    Scroll
+    SearchList
   },
   computed: {
-    ...mapGetters(['searchHistory']),
     shortcut() {
       return this.hotKey.concat(this.searchHistory)
     }
   },
   methods: {
-    handlePlayList(playlist) {
-      const bottom = playlist.length > 0 ? '60px' : ''
-      this.$refs.shortWrapper.style.bottom = bottom
-      this.$refs.searchResult.style.bottom = bottom
-      this.$refs.shortcut.refresh()
-      this.$refs.suggest.refresh()
-    },
     _getHotKey() {
       getHotKey().then(res => {
         if (ERR_OK === res.code) {
           this.hotKey = res.data.hotkey.slice(0, 10)
         }
       })
-    },
-    addQuery(query) {
-      this.$refs.searchBox.setQuery(query)
-    },
-    onQueryChange(newQuery) {
-      this.query = newQuery
-    },
-    blurInput() {
-      this.$refs.searchBox.blur()
-    },
-    useQuery(item) {
-      this.query = item
-      this.$refs.searchBox.setQuery(item)
-    },
-    saveSearch() {
-      this.saveSearchHistory(this.query)
-    },
-    sureClearHistory() {
-      this.$refs.confirm.show()
-    },
-    ...mapActions(['saveSearchHistory', 'delSearchHistory', 'clearHistory'])
+    }
   },
   watch: {
     query(newQuery) {

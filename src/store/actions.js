@@ -4,7 +4,7 @@ import { getSingerList } from 'api/singer.js'
 import * as types from './mutation-type.js'
 import { playMode } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
-import { saveSearchLocal, deleteSearchLocal, clearSearchLocal } from 'common/js/cache.js'
+import { saveSearchLocal, deleteSearchLocal, clearSearchLocal, savePlayLocal } from 'common/js/cache.js'
 
 const KEY_NAME = 'singerList'
 
@@ -48,7 +48,6 @@ const selectPlay = function({ commit, state }, { list, index }) {
     let randomList = shuffle(list)
     commit(types.SET_PLAYLIST, randomList)
     index = findIndex(randomList, list[index])
-    console.log(index)
   } else {
     commit(types.SET_PLAYLIST, list)
   }
@@ -159,6 +158,10 @@ const clearHistory = function({ commit }) {
   commit(types.SET_SEARCH_HISTORY, clearSearchLocal())
 }
 
+const savePlayHistory = function({ commit }, song) {
+  commit(types.SET_PLAY_HISTORY, savePlayLocal(song))
+}
+
 const actions = {
   initRecommendData,
   initSingerData,
@@ -169,7 +172,8 @@ const actions = {
   delSearchHistory,
   clearHistory,
   deleteSong,
-  clearPlayList
+  clearPlayList,
+  savePlayHistory
 }
 
 export default actions

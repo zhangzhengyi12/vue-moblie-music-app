@@ -67,9 +67,7 @@ export default {
       })
     },
     selectRandom() {
-      this.randomPlay({
-        list: this.songs
-      })
+      this.randomPlay(this.songs)
     },
     handlePlayList(playList) {
       // 这个回调放到mixin里

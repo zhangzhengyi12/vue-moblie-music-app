@@ -4,6 +4,7 @@ const SEARCH_KEY = '__search__'
 const MAX_SEARCH_HISTORY = 15
 const PLAY_KEY = '__PLAY__'
 const MAX_PLAY_HISTORY = 100
+const FAVORITE_KEY = '__FAVORITE__'
 
 function insertArray(_arr, val, compare, maxlen) {
   let arr = _arr.slice()
@@ -16,7 +17,6 @@ function insertArray(_arr, val, compare, maxlen) {
   }
   arr.unshift(val)
   if (maxlen && arr.length > maxlen) {
-    console.log('pop')
     arr.pop()
   }
 
@@ -82,6 +82,30 @@ export function savePlayLocal(song) {
   return newPlayHistory
 }
 
+export function saveFavoriteLocal(song) {
+  let favoriteList = storage.get(FAVORITE_KEY, [])
+
+  const newFavorite = insertArray(favoriteList, song, item => {
+    return item.id === song.id
+  })
+
+  storage.set(FAVORITE_KEY, newFavorite)
+  return newFavorite
+}
+
+export function delFavoriteLocal(song) {
+  let favoriteList = storage.get(FAVORITE_KEY, [])
+
+  const newFavorite = delArray(favoriteList, item => {
+    return item.id === song.id
+  })
+
+  return newFavorite
+}
+
+export function loadFavoriteList() {
+  return storage.get(FAVORITE_KEY, [])
+}
 export function loadPlayHistory() {
   return storage.get(PLAY_KEY, [])
 }

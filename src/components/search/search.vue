@@ -5,7 +5,7 @@
     </div>
     <!-- 当query存在 隐藏热门搜索 -->
     <div class="shortcut-wrapper" v-show="!query" ref="shortWrapper"> 
-      <scroll class="shortcut" :data="shortcut" ref="shortcut">
+      <scroll class="shortcut" :data="shortcut" ref="shortcut" :refreshDelay="30">
         <div>
         <div class="hot-key">
           <h1 class="title">热门搜索</h1>

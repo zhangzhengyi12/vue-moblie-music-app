@@ -23,3 +23,7 @@ new Vue({
   router,
   store
 })
+
+// HACK PLAY
+
+window.ONCE_FLAG = true

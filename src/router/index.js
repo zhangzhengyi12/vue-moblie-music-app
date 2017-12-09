@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import userCenter from 'components/user-center/user-center.vue'
 import Rank from 'components/rank/rank.vue'
 import Search from 'components/search/search.vue'
 import Recommend from 'components/recommend/recommend.vue'
@@ -16,6 +17,10 @@ export default new Router({
     {
       path: '/',
       redirect: 'recommend'
+    },
+    {
+      path: '/user',
+      component: userCenter
     },
     {
       path: '/recommend',

@@ -65,7 +65,7 @@
               <i class="icon-next" @click="toggleNext"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon" :class="favoriteCls" @click="toggleFavorite"></i>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@
     <transition name="mini-fade">
       <div class="mini-player" v-show="!fullScreen" @click="openNormalPlayer">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image" :class="cdCls">
+          <img width="40" height="40" :src="currentSong.image" :class="cdCls" @onload="HACKPLAY">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
@@ -90,7 +90,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error.stop="error" @timeupdate="updateTime" @ended="playEnd"></audio>
+    <audio ref="audio" autoplay :src="currentSong.url" @play="ready" @error.stop="error" @timeupdate="updateTime" @ended="playEnd" ></audio>
     <transition name="alert">
       <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
@@ -110,7 +110,6 @@ import Scroll from 'base/scroll/scroll.vue'
 import { playMode } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
 import PlayList from 'components/playlist/playlist.vue'
-import Song from 'common/js/song.js'
 import { playerMixin } from 'common/js/mixin.js'
 
 const transform = prefixStyle('transform')
@@ -138,6 +137,14 @@ export default {
   },
   created() {
     this.touch = {}
+    // HACK PLAY
+    // run Once
+    document.querySelector('html').ontouchstart = () => {
+      if (this.songReady && window.ONCE_FLAG) {
+        window.ONCE_FLAG = false
+        this.$refs.audio.play()
+      }
+    }
   },
   computed: {
     ...mapGetters(['fullScreen', 'playList', 'currentSong', 'playing', 'currentIndex', 'mode', 'sequenceList']),
@@ -164,6 +171,9 @@ export default {
         }
       })
       return cName
+    },
+    favoriteCls() {
+      return this.checkFavorite(this.currentSong) ? 'icon-favorite' : 'icon-not-favorite'
     }
   },
   methods: {
@@ -173,6 +183,12 @@ export default {
     },
     openNormalPlayer() {
       this.setFullScreen(true)
+    },
+    HACKPLAY() {
+      setTimeout(() => {
+        this.$refs.audio.play()
+        alert('onload')
+      }, 2000)
     },
     error() {
       this.alertText = '歌曲获取失败 尝试下一首'
@@ -197,12 +213,10 @@ export default {
     toggleNext() {
       if (!this.songReady) return
       if (this.playList.length === 1) {
-        // 防止边界导致歌词等无法更新
-        this.loop()
-      } else {
-        this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
-        this.setPlayingState(true)
+        return this.loop()
       }
+      this.setCurrentIndex(this.currentIndex >= this.playList.length - 1 ? 0 : this.currentIndex + 1)
+      this.setPlayingState(true)
       this.songReady = false
     },
     playEnd() {
@@ -220,12 +234,13 @@ export default {
     },
     togglePrev() {
       if (!this.songReady) return
+
       if (this.playList.length === 1) {
-        this.loop()
-      } else {
-        this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
-        this.setPlayingState(true)
+        this.songReady = true
+        return this.loop()
       }
+      this.setCurrentIndex(this.currentIndex <= 0 ? this.playList.length - 1 : this.currentIndex - 1)
+      this.setPlayingState(true)
       this.songReady = false
     },
     onProgressChange(percent) {
@@ -318,6 +333,13 @@ export default {
       })
       animations.runAnimation(this.$refs.cdWrapper, 'move', done)
     },
+    toggleFavorite() {
+      if (!this.checkFavorite(this.currentSong)) {
+        this.saveFavorite(this.currentSong)
+      } else {
+        this.delFavorite(this.currentSong)
+      }
+    },
     updateTime(e) {
       this.currentTime = e.target.currentTime
     },
@@ -356,6 +378,7 @@ export default {
     },
     ready() {
       this.songReady = true
+      this.savePlayHistory(this.currentSong)
     },
     afterEnter(el, done) {
       animations.unregisterAnimation('move')
@@ -386,13 +409,14 @@ export default {
       this.$refs.cdWrapper.style.animation = ''
     },
     getLyric() {
-      if (!this.currentSong.getLyric) {
-        this.currentSong = new Song(this.currentSong)
-      }
       this.currentSong
         .getLyric()
         .then(
           lyric => {
+            if (this.currentSong.lyric !== lyric) {
+              // 歌曲变化 无须创建歌词
+              return
+            }
             this.currentLyric = new Lyric(lyric, this.handeLyric)
             if (this.playing) {
               this.currentLyric.play()
@@ -440,6 +464,11 @@ export default {
         scale
       }
     },
+    resetLyric() {
+      this.currentLyric && this.currentLyric.stop() // 清除计时器
+      this.currentLineNum = -1 // 避免当前歌词停留
+      this.playingLyric = ''
+    },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
@@ -453,12 +482,11 @@ export default {
       if (!newSong.id || newSong.id === oldSong.id) {
         return
       }
-      this.currentLyric && this.currentLyric.stop() // 清除计时器
-      this.currentLineNum = -1 // 避免当前歌词停留
-      this.playingLyric = ''
-      setTimeout(() => {
+      this.resetLyric()
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => {
+        // HACK Play
         this.$refs.audio.play()
-        this.songReady && this.savePlayHistory(newSong)
         this.getLyric()
       }, 1000)
     },

@@ -42,13 +42,28 @@ export const playerMixin = {
     },
     modeText() {
       return PlayModeNameMap[this.mode]
-    }
+    },
+    ...mapGetters(['favoriteList'])
   },
   methods: {
     ...mapMutations({
       setCurrentIndex: 'SET_CURRENT_INDEX',
       setPlayState: 'SET_PLAYING_STATE'
-    })
+    }),
+    toggleFavorite() {
+      if (!this.favorite) {
+        this.saveFavorite(this.currentSong)
+      } else {
+        this.delFavorite(this.currentSong)
+      }
+    },
+    checkFavorite(song) {
+      const favoriteIndex = this.favoriteList.findIndex(item => {
+        return song.id === item.id
+      })
+      return favoriteIndex > -1
+    },
+    ...mapActions(['saveFavorite', 'delFavorite'])
   }
 }
 

@@ -4,7 +4,14 @@ import { getSingerList } from 'api/singer.js'
 import * as types from './mutation-type.js'
 import { playMode } from 'common/js/config.js'
 import { shuffle } from 'common/js/util.js'
-import { saveSearchLocal, deleteSearchLocal, clearSearchLocal, savePlayLocal } from 'common/js/cache.js'
+import {
+  saveSearchLocal,
+  deleteSearchLocal,
+  clearSearchLocal,
+  savePlayLocal,
+  saveFavoriteLocal,
+  delFavoriteLocal
+} from 'common/js/cache.js'
 
 const KEY_NAME = 'singerList'
 
@@ -95,7 +102,7 @@ const clearPlayList = function({ commit }) {
   commit(types.SET_PLAYING_STATE, false)
 }
 
-const randomPlay = function({ commit }, { list }) {
+const randomPlay = function ({ commit }, list) {
   commit(types.SET_PLAY_MODE, playMode.random)
   commit(types.SET_SEQUENCE_LIST, list)
   commit(types.SET_PLAYLIST, shuffle(list))
@@ -162,6 +169,14 @@ const savePlayHistory = function({ commit }, song) {
   commit(types.SET_PLAY_HISTORY, savePlayLocal(song))
 }
 
+const saveFavorite = function({ commit }, song) {
+  commit(types.SET_FAVORITE_LIST, saveFavoriteLocal(song))
+}
+
+const delFavorite = function({ commit }, song) {
+  commit(types.SET_FAVORITE_LIST, delFavoriteLocal(song))
+}
+
 const actions = {
   initRecommendData,
   initSingerData,
@@ -173,7 +188,9 @@ const actions = {
   clearHistory,
   deleteSong,
   clearPlayList,
-  savePlayHistory
+  savePlayHistory,
+  saveFavorite,
+  delFavorite
 }
 
 export default actions

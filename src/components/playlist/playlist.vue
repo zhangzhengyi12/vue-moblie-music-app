@@ -9,13 +9,13 @@
             <span class="clear" @click="sureClearPlayList" ><i class="icon-clear"></i></span>
           </h1>
         </div>
-        <scroll class="list-content" :data="sequenceList" ref="listContent">
+        <scroll class="list-content" :data="sequenceList" ref="listContent" :refreshDelay="100">
           <transition-group name="list" tag="ul">
             <li  class="item" ref="listItem" v-for="(item,index) in sequenceList" :key="item.name" @click="select(item,index)">
               <i class="current" :class="getCurrentIcon(item)"></i>
               <span class="text">{{ item.name }}</span>
               <span class="like">
-                <i ></i>
+                <i :class="favoriteCls(item)"></i>
               </span>
               <span class="delete" @click.stop="deleteOne(item)">
                 <i class="icon-delete"></i>
@@ -60,6 +60,9 @@ export default {
     AddSong
   },
   methods: {
+    favoriteCls(item) {
+      return this.checkFavorite(item) ? 'icon-favorite' : ''
+    },
     show() {
       this.showFlag = true
       this.$nextTick(() => {
@@ -77,7 +80,7 @@ export default {
       }
       return ''
     },
-    addSong(){
+    addSong() {
       this.$refs.addSong.show()
     },
     select(item, index) {

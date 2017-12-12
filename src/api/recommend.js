@@ -17,7 +17,7 @@ export function getRecommend() {
 }
 
 export function getDiscList() {
-  const url = '/api/getDiscList'
+  const url = 'http://api.laoliuscript.tk/api/getDiscList'
 
   const data = Object.assign({}, common, {
     platform: 'yqq',
@@ -38,7 +38,7 @@ export function getDiscList() {
 }
 
 export function getDissData(dissId) {
-  const url = '/api/getDissData'
+  const url = 'http://api.laoliuscript.tk/api/getDissData'
 
   const data = Object.assign({}, common, {
     type: 1,

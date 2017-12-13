@@ -49,7 +49,7 @@
       },
       selectItem(item) {
         this.$router.push({
-          path: `/rank/${item.id}`
+          path: `/rank/Top`
         })
         this.setTopList(item)
       },

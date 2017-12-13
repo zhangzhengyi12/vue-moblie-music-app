@@ -57,6 +57,10 @@ export default new Router({
       redirect: 'recommend'
     },
     {
+      path: '/vue-moblie-music-app',
+      redirect: 'recommend'
+    },
+    {
       path: '/user',
       component: UserCenter
     },

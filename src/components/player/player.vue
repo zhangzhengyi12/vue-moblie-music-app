@@ -143,7 +143,6 @@ export default {
       console.log('touch')
       if (this.songReady && window.ONCE_FLAG) {
         console.log(object);
-        window.ONCE_FLAG = false
         this.$refs.audio.play()
       }
     }

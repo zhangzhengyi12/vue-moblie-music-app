@@ -1,0 +1,169 @@
+文件夹 PATH 列表
+卷序列号为 0007-BDD4
+C:.
+│  App.vue
+│  list.txt
+│  main.js
+│  
+├─api
+│      config.js
+│      getSlider.js
+│      rank.js
+│      recommend.js
+│      search.js
+│      singer.js
+│      song.js
+│      
+├─base
+│  │  slider.vue
+│  │  
+│  ├─alert
+│  │      alert.vue
+│  │      
+│  ├─confirm
+│  │      confirm.vue
+│  │      
+│  ├─listview
+│  │      listview.vue
+│  │      
+│  ├─loading
+│  │      loading.gif
+│  │      loading.vue
+│  │      
+│  ├─no-result
+│  │      no-result.vue
+│  │      no-result@2x.png
+│  │      no-result@3x.png
+│  │      
+│  ├─progress-bar
+│  │      progress-bar.vue
+│  │      
+│  ├─progress-circle
+│  │      progress-circle.vue
+│  │      
+│  ├─scroll
+│  │      scroll.vue
+│  │      
+│  ├─search-box
+│  │      search-box.vue
+│  │      
+│  ├─search-list
+│  │      search-list.vue
+│  │      
+│  ├─song-list
+│  │      first@2x.png
+│  │      first@3x.png
+│  │      second@2x.png
+│  │      second@3x.png
+│  │      song-list.vue
+│  │      third@2x.png
+│  │      third@3x.png
+│  │      
+│  ├─switches
+│  │      switches.vue
+│  │      
+│  └─top-tip
+│          top-tip.vue
+│          
+├─common
+│  ├─fonts
+│  │      music-icon.eot
+│  │      music-icon.svg
+│  │      music-icon.ttf
+│  │      music-icon.woff
+│  │      
+│  ├─image
+│  │      default.png
+│  │      first@2x.png
+│  │      first@3x.png
+│  │      second@2x.png
+│  │      second@3x.png
+│  │      song-list.vue
+│  │      third@2x.png
+│  │      third@3x.png
+│  │      
+│  ├─js
+│  │      ajax.js
+│  │      cache.js
+│  │      config.js
+│  │      debounce.js
+│  │      dom.js
+│  │      goSolider.js
+│  │      jsonp.js
+│  │      mixin.js
+│  │      routerback.js
+│  │      singer.js
+│  │      song.js
+│  │      util.js
+│  │      
+│  └─stylus
+│          base.styl
+│          icon.styl
+│          index.styl
+│          mixin.styl
+│          reset.styl
+│          variable.styl
+│          
+├─components
+│  ├─add-song
+│  │      add-song.vue
+│  │      
+│  ├─disc
+│  │      disc.vue
+│  │      
+│  ├─m-header
+│  │      logo@2x.png
+│  │      logo@3x.png
+│  │      m-header.vue
+│  │      
+│  ├─music-list
+│  │      music-list.vue
+│  │      
+│  ├─player
+│  │      player.vue
+│  │      
+│  ├─playlist
+│  │      playlist.vue
+│  │      
+│  ├─rank
+│  │      rank.vue
+│  │      
+│  ├─recommend
+│  │      recommend.vue
+│  │      
+│  ├─search
+│  │      search.vue
+│  │      
+│  ├─singer
+│  │      singer.vue
+│  │      
+│  ├─singer-detail
+│  │      singer-detail.vue
+│  │      
+│  ├─suggest
+│  │      suggest.vue
+│  │      
+│  ├─tab
+│  │      tab.vue
+│  │      
+│  ├─toplist
+│  │      toplist.vue
+│  │      
+│  └─user-center
+│          user-center.vue
+│          
+├─rank
+│      rank.vue
+│      
+├─router
+│      index.js
+│      
+└─store
+        actions.js
+        getters.js
+        index.js
+        mutation-type.js
+        mutations.js
+        state.js
+        store.js
+        

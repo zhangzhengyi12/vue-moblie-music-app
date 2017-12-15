@@ -74,7 +74,7 @@
     <transition name="mini-fade">
       <div class="mini-player" v-show="!fullScreen" @click="openNormalPlayer">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image" :class="cdCls" @onload="HACKPLAY">
+          <img width="40" height="40" :src="currentSong.image" :class="cdCls">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
@@ -90,7 +90,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" autoplay :src="currentSong.url" @play="ready" @error.stop="error" @timeupdate="updateTime" @ended="playEnd" ></audio>
+    <audio ref="audio" autoplay :src="currentSong.url" @canplay="ready" @error.stop="error" @timeupdate="updateTime" @ended="playEnd" ></audio>
     <transition name="alert">
       <alert v-if="isAlert" :text="alertText"></alert>
     </transition>
@@ -140,7 +140,9 @@ export default {
     // HACK PLAY
     // run Once
     document.querySelector('html').ontouchstart = () => {
+      console.log('touch')
       if (this.songReady && window.ONCE_FLAG) {
+        console.log(object);
         window.ONCE_FLAG = false
         this.$refs.audio.play()
       }
@@ -183,12 +185,6 @@ export default {
     },
     openNormalPlayer() {
       this.setFullScreen(true)
-    },
-    HACKPLAY() {
-      setTimeout(() => {
-        this.$refs.audio.play()
-        alert('onload')
-      }, 2000)
     },
     error() {
       this.alertText = '歌曲获取失败 尝试下一首'
@@ -377,6 +373,7 @@ export default {
       return num
     },
     ready() {
+      console.log('ready')
       this.songReady = true
       this.savePlayHistory(this.currentSong)
     },

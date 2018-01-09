@@ -6,11 +6,8 @@ import fastclick from 'fastclick'
 import router from './router'
 import http from 'vue-resource'
 import vueLazyLoad from 'vue-lazyload'
-import VConsole from 'vconsole'
 
 /* eslint-disable */
-const vconsole = new VConsole()
-console.log(vconsole)
 
 Vue.use(http)
 Vue.use(vueLazyLoad, {

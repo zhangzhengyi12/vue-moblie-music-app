@@ -142,7 +142,6 @@ export default {
     document.querySelector('html').ontouchstart = () => {
       console.log('touch')
       if (this.songReady && window.ONCE_FLAG) {
-        console.log(object);
         this.$refs.audio.play()
       }
     }

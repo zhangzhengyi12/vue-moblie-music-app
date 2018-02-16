@@ -17,7 +17,7 @@ export function getRecommend() {
 }
 
 export function getDiscList() {
-  const url = 'http://api.laoliuscript.tk/api/getDiscList'
+  const url = 'https://api.yinode.tech/vueMusicApp/getDiscList'
 
   const data = Object.assign({}, common, {
     platform: 'yqq',
@@ -38,7 +38,7 @@ export function getDiscList() {
 }
 
 export function getDissData(dissId) {
-  const url = 'http://api.laoliuscript.tk/api/getDissData'
+  const url = 'https://api.yinode.tech/vueMusicApp/getDissData'
 
   const data = Object.assign({}, common, {
     type: 1,

@@ -2,7 +2,7 @@ import { common } from './config'
 import axios from 'axios'
 
 export function getLyric(mid) {
-  const url = 'http://api.laoliuscript.tk/api/lyric'
+  const url = 'https://api.yinode.tech/vueMusicApp/lyric'
 
   const data = Object.assign({}, common, {
     songmid: mid,
